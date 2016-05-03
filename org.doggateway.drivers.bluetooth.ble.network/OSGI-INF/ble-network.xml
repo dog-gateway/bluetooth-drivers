@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="activate" deactivate="deactivate" name="it.ismb.pert.dog.bluetooth.ble.network">
+   <implementation class="org.doggateway.drivers.bluetooth.ble.network.BLENetworkDriverImpl"/>
+   <reference bind="addedBluetoothService" cardinality="1..1" interface="org.doggateway.libraries.intel.tinyb.service.BluetoothService" name="BluetoothService" policy="dynamic" unbind="removedBluetoothService"/>
+   <service>
+      <provide interface="org.osgi.service.cm.ManagedService"/>
+   </service>
+   <property name="service.pid" type="String" value="org.doggateway.drivers.bluetooth.ble.network"/>
+</scr:component>
