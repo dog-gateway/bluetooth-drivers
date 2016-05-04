@@ -24,7 +24,7 @@ package org.doggateway.drivers.bluetooth.ble.network.interfaces;
  * @author bonino
  *
  */
-public interface DiscoveryListener
+public interface BLEDiscoveryListener
 {
 	/**
 	 * Notifies the discovery of a new device
@@ -41,4 +41,10 @@ public interface DiscoveryListener
 	 */
 	public void discoveredDevice(String devName, String devAddress, short rssi,
 			boolean managed);
+	
+	/**
+	 * Notifies the current discovery status
+	 * @param enabled
+	 */
+	public void discoveryEnabled(boolean enabled);
 }

@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 
 import org.doggateway.drivers.bluetooth.ble.network.BLENetworkDriverImpl;
 import org.doggateway.drivers.bluetooth.ble.network.info.ManagedBluetoothDevice;
-import org.doggateway.drivers.bluetooth.ble.network.interfaces.DiscoveryListener;
+import org.doggateway.drivers.bluetooth.ble.network.interfaces.BLEDiscoveryListener;
 import org.osgi.service.log.LogService;
 
 import tinyb.BluetoothDevice;
@@ -43,7 +43,7 @@ public class BLEDiscoveryWorker extends Thread
 	private boolean canRun;
 	
 	// the set of discovery listeners
-	private HashSet<DiscoveryListener> listeners;
+	private HashSet<BLEDiscoveryListener> listeners;
 	
 	// the dispatcher service
 	private ExecutorService dispatcher;
@@ -61,7 +61,7 @@ public class BLEDiscoveryWorker extends Thread
 		this.theDriver = theDriver;
 		
 		//create the set of discovery listeners
-		this.listeners = new HashSet<DiscoveryListener>();
+		this.listeners = new HashSet<BLEDiscoveryListener>();
 		
 		//create the executor service, single threaded,
 		this.dispatcher = Executors.newCachedThreadPool();
@@ -76,10 +76,10 @@ public class BLEDiscoveryWorker extends Thread
 	@Override
 	public void run()
 	{
-		while (!this.isInterrupted() && canRun)
+		while (canRun)
 		{
 			for (int i = 0; ((i < this.theDriver.getDiscoveryTrials())
-					&& (!this.isInterrupted()) && (canRun)); i++)
+					&& (canRun)); i++)
 			{
 				// open the adapter in discovery, wait for a while and check if
 				// any
@@ -87,6 +87,9 @@ public class BLEDiscoveryWorker extends Thread
 				// the devices listed in the waiting to discover list are
 				// available.
 				this.theDriver.setDiscovery(true);
+				
+				// TODO this part shall be "re-thought" and "re-factored"!!!
+				this.dispatcher.submit(new DispatchDiscoveryStatusTask(this.listeners, true));
 
 				// get the currently available devices
 				List<BluetoothDevice> devices = this.theDriver
@@ -145,11 +148,14 @@ public class BLEDiscoveryWorker extends Thread
 				}
 				catch (InterruptedException e)
 				{
-					// TODO: handle exception
+					//do nothing, we exploit interrupt to wake up the thread on demand
 				}
 			}
 			// stop discovery
 			this.theDriver.setDiscovery(false);
+			
+			// TODO this part shall be "re-thought" and "re-factored"!!!
+			this.dispatcher.submit(new DispatchDiscoveryStatusTask(this.listeners, false));
 
 			// sleep
 			try
@@ -158,7 +164,7 @@ public class BLEDiscoveryWorker extends Thread
 			}
 			catch (InterruptedException e)
 			{
-				// TODO: handle exception
+				//do nothing, we exploit interrupt to wake up the thread on demand
 			}
 		}
 	}
@@ -178,7 +184,7 @@ public class BLEDiscoveryWorker extends Thread
 	 * Adds a discovery listener to the set of listeners to be notified about the discovery of new devices
 	 * @param listener The listener to notify
 	 */
-	public void addDiscoveryListener(DiscoveryListener listener)
+	public void addDiscoveryListener(BLEDiscoveryListener listener)
 	{
 		synchronized (this.listeners)
 		{
@@ -191,7 +197,7 @@ public class BLEDiscoveryWorker extends Thread
 	 * @param listener The listener to remove
 	 * @return true if removed, false otherwise
 	 */
-	public boolean removeDiscoveryListener(DiscoveryListener listener)
+	public boolean removeDiscoveryListener(BLEDiscoveryListener listener)
 	{
 		boolean removed = false;
 		synchronized (this.listeners)

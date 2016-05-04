@@ -81,30 +81,30 @@ public interface BLENetwork
 	 *            The UUID of the characteristic to read
 	 * @return the value read or null if read operation is not possible
 	 */
-	byte[] readValue(String deviceMacAddress, String serviceUUID,
+	public byte[] readValue(String deviceMacAddress, String serviceUUID,
 			String characteristicUUID);
 
 	/**
-	 * Enables/disables discovery mode on the "default" adapter TODO: extend
-	 * this to manage multiple adapters
-	 * 
-	 * @param enabled
-	 *            if true, sets the adapter in discovery mode, else stops the
-	 *            discovery
+	 * Starts the discovery mode on the default adapter
 	 */
-	void setDiscovery(boolean enabled);
+	public void startDiscovery();
+	
+	/**
+	 * Stop the discovery mode on the default adapter
+	 */
+	public void stopDiscovery();
 
 	/**
 	 * Adds a discovery listener to the set of listeners to be notified about the discovery of new devices
 	 * @param listener The listener to notify
 	 */
-	void addDiscoveryListener(DiscoveryListener listener);
+	public void addDiscoveryListener(BLEDiscoveryListener listener);
 
 	/**
 	 * Removes a discovery listener from the set of listeners to be notified about the discovery of new devices
 	 * @param listener The listener to remove
 	 * @return true if removed, false otherwise
 	 */
-	boolean removeDiscoveryListener(DiscoveryListener listener);
+	public boolean removeDiscoveryListener(BLEDiscoveryListener listener);
 
 }

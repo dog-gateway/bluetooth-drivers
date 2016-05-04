@@ -71,6 +71,9 @@ public abstract class BLEDriverInstance implements StatefulDevice
 	// the set of commands associated to the driver
 	protected HashMap<String, CNParameters> commands;
 
+	// the adapter flag
+	private boolean isAdapter = false;
+
 	/**
 	 * Class constructor, takes a reference to the network driver to exploit for
 	 * communication and to the Dog device instance to handle.
@@ -95,10 +98,13 @@ public abstract class BLEDriverInstance implements StatefulDevice
 		// store a reference to the associated device
 		this.device = device;
 
-		// store a reference to the mac address of the gateway to be used
+		// store the gateway address
 		this.gwAddress = gwMacAddress;
 
-		// store the polling time in milliseconds
+		// compute the adapter flag: no GW MAC -> adapter
+		this.isAdapter = (this.gwAddress == null);
+
+		// store the polling time millis
 		this.pollingTimeMillis = pollingTimeMillis;
 
 		// store the logger
@@ -116,7 +122,9 @@ public abstract class BLEDriverInstance implements StatefulDevice
 		this.specificConfiguration();
 
 		// associate the device-specific driver to the network driver...
-		this.addToNetworkDriver(this.bleDevReg);
+		// not for adapters
+		if (!this.isAdapter)
+			this.addToNetworkDriver(this.bleDevReg);
 	}
 
 	/**

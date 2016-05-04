@@ -30,7 +30,7 @@ import org.doggateway.drivers.bluetooth.ble.network.info.BLEDeviceRegistration;
 import org.doggateway.drivers.bluetooth.ble.network.info.CharacteristicMonitorSpec;
 import org.doggateway.drivers.bluetooth.ble.network.info.ManagedBluetoothDevice;
 import org.doggateway.drivers.bluetooth.ble.network.interfaces.BLENetwork;
-import org.doggateway.drivers.bluetooth.ble.network.interfaces.DiscoveryListener;
+import org.doggateway.drivers.bluetooth.ble.network.interfaces.BLEDiscoveryListener;
 import org.doggateway.drivers.bluetooth.ble.network.tasks.BLEDiscoveryWorker;
 import org.doggateway.drivers.bluetooth.ble.network.tasks.BLEPollingWorker;
 import org.doggateway.drivers.bluetooth.ble.network.tasks.NotifyValueTask;
@@ -209,12 +209,14 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 	public void deactivate()
 	{
 		// stop the polling worker
-		this.pollingWorker.interrupt();
 		this.pollingWorker.setRunnable(false);
+		this.pollingWorker.interrupt();
+		
 
 		// stop the discovery worker
-		this.discoveryWorker.interrupt();
 		this.discoveryWorker.setRunnable(false);
+		this.discoveryWorker.interrupt();
+		
 
 		// debug: signal activation...
 		this.logger.log(LogService.LOG_DEBUG, "Deactivated...");
@@ -682,13 +684,41 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 	 * 
 	 * @param enabled
 	 */
-	@Override
 	public void setDiscovery(boolean enabled)
 	{
 		if (enabled)
+		{
 			this.bluetooth.get().getManager().startDiscovery();
+		}
 		else
+		{
 			this.bluetooth.get().getManager().stopDiscovery();
+		}
+	}
+	
+	
+
+	/* (non-Javadoc)
+	 * @see org.doggateway.drivers.bluetooth.ble.network.interfaces.BLENetwork#startDiscovery()
+	 */
+	@Override
+	public void startDiscovery()
+	{
+		// if the discovery thread exists, start it
+		if((this.discoveryWorker!=null)&&(this.discoveryWorker.isAlive()))
+		{
+			//signal the worker to resume...
+			this.discoveryWorker.interrupt();
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.doggateway.drivers.bluetooth.ble.network.interfaces.BLENetwork#stopDiscovery()
+	 */
+	@Override
+	public void stopDiscovery()
+	{
+		// TODO Define Automatic vs Manual discovery!!! at now do nothing		
 	}
 
 	/**
@@ -713,13 +743,13 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 	}
 
 	@Override
-	public void addDiscoveryListener(DiscoveryListener listener)
+	public void addDiscoveryListener(BLEDiscoveryListener listener)
 	{
 		this.discoveryWorker.addDiscoveryListener(listener);
 	}
 
 	@Override
-	public boolean removeDiscoveryListener(DiscoveryListener listener)
+	public boolean removeDiscoveryListener(BLEDiscoveryListener listener)
 	{
 		return this.discoveryWorker.removeDiscoveryListener(listener);
 	}

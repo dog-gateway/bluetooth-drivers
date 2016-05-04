@@ -22,44 +22,27 @@ import java.util.concurrent.Callable;
 
 import org.doggateway.drivers.bluetooth.ble.network.interfaces.BLEDiscoveryListener;
 
-import tinyb.BluetoothDevice;
-
 /**
- * A task for dispatching discovery data to declared listeners
  * @author bonino
  *
  */
-public class DispatchDiscoveryTask implements Callable<Void>
+public class DispatchDiscoveryStatusTask implements Callable<Void>
 {
-	//the discovered bluetooth device
-	private BluetoothDevice device;
+	// the discovery state to dispatch
+	private boolean discoveryState;
 	
 	//the discovery listeners
 	private HashSet<BLEDiscoveryListener> listeners;
 	
-	//the managed flag that indicates if the device is already managed by Dog or not
-	private boolean managed;
-
 	/**
-	 * Class constructor, collects parameters to dispatch, and target listeners
-	 * @param lowDevice The discovered bluetooth device
-	 * @param listeners The registered listeners
-	 * @param managed The managed flag
+	 * create the discovery status task
+	 * @param listeners listeners to notify
+	 * @param discoveryState status to propagate
 	 */
-	public DispatchDiscoveryTask(BluetoothDevice lowDevice,
-			HashSet<BLEDiscoveryListener> listeners, boolean managed)
+	public DispatchDiscoveryStatusTask(HashSet<BLEDiscoveryListener> listeners, boolean discoveryState)
 	{
-		// store needed data
-		this.device = lowDevice;
-		this.listeners = listeners;
-		this.managed = managed;
+		this.discoveryState = discoveryState;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.util.concurrent.Callable#call()
-	 */
 	@Override
 	public Void call() throws Exception
 	{
@@ -68,9 +51,7 @@ public class DispatchDiscoveryTask implements Callable<Void>
 			for (BLEDiscoveryListener listener : this.listeners)
 			{
 				//dispatch the discovery information
-				listener.discoveredDevice(this.device.getName(),
-						this.device.getAddress(), this.device.getRssi(),
-						this.managed);
+				listener.discoveryEnabled(discoveryState);
 			}
 		}
 		return null;

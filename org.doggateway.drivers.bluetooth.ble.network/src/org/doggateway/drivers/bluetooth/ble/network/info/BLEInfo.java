@@ -45,4 +45,7 @@ public class BLEInfo extends ConfigurationConstants
 	
 	//one of the standard data types or custom
 	public static final String DATA_TYPE = "bluetoothDataType";
+	
+	// the manufacturer id for bluetooth
+	public static final String MANUFACTURER = "Bluetooth+LE";
 }

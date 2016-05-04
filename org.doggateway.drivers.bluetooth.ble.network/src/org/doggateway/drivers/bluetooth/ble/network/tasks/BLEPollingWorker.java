@@ -66,14 +66,14 @@ public class BLEPollingWorker extends Thread
 	@Override
 	public void run()
 	{
-		while (!this.isInterrupted() && canRun)
+		while ((!this.isInterrupted()) && canRun)
 		{
 			// iterate over all managed devices
 			for (String deviceMac : this.theDriver
 					.getManagedBluetoothDeviceAddresses())
 			{
 				// quick stop
-				if (canRun)
+				if ((!this.isInterrupted()) && canRun)
 				{
 					// this shall be atomic...
 					ManagedBluetoothDevice device = this.theDriver
