@@ -42,6 +42,7 @@ public class DispatchDiscoveryStatusTask implements Callable<Void>
 	public DispatchDiscoveryStatusTask(HashSet<BLEDiscoveryListener> listeners, boolean discoveryState)
 	{
 		this.discoveryState = discoveryState;
+		this.listeners = listeners;
 	}
 	@Override
 	public Void call() throws Exception

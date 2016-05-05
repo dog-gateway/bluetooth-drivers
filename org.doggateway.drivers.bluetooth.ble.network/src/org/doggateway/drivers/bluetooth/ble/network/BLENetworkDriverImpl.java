@@ -36,6 +36,7 @@ import org.doggateway.drivers.bluetooth.ble.network.tasks.BLEPollingWorker;
 import org.doggateway.drivers.bluetooth.ble.network.tasks.NotifyValueTask;
 import org.doggateway.libraries.intel.tinyb.service.BluetoothService;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.log.LogService;
@@ -147,6 +148,7 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 
 	// the discovery thread
 	private BLEDiscoveryWorker discoveryWorker;
+	private ServiceRegistration<?> regServiceBLENetworkDriverImpl;
 
 	/**
 	 * Class constructor, builds required data structures
@@ -216,6 +218,9 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 		// stop the discovery worker
 		this.discoveryWorker.setRunnable(false);
 		this.discoveryWorker.interrupt();
+		
+		//unregister network services
+		this.unregisterNetworkService();
 		
 
 		// debug: signal activation...
@@ -378,7 +383,9 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 									+ " should be integer");
 				}
 			}
-
+			
+			// update the service registration
+			this.registerNetworkService();
 		}
 
 	}
@@ -977,6 +984,39 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 		this.actualPollingTimeMillis = (jitterAwarePollingTime > 0)
 				? jitterAwarePollingTime
 				: BLENetworkDriverImpl.MINIMUM_THREAD_SLEEP_MILLIS;
+	}
+	
+
+	/**
+	 * Registers the services described by the {@link EnOceanNetwork} interface
+	 * and provided by this class as "available" in the OSGi framework.
+	 */
+	private void registerNetworkService()
+	{
+		// simple registration stuff
+
+		// avoid multiple registrations
+		if (this.regServiceBLENetworkDriverImpl == null)
+		{
+			// register the service, with no properties
+			this.regServiceBLENetworkDriverImpl = this.bundleContext
+					.registerService(BLENetwork.class.getName(), this, null);
+		}
+
+	}
+
+	/**
+	 * Unregisters the services provided by this class from the OSGi framework
+	 */
+	private void unregisterNetworkService()
+	{
+		// performs service de-registration from the framework
+		if (this.regServiceBLENetworkDriverImpl != null)
+		{
+			// de-register
+			this.regServiceBLENetworkDriverImpl.unregister();
+		}
+
 	}
 
 }
