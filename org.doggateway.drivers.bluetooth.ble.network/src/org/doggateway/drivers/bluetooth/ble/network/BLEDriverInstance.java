@@ -57,6 +57,9 @@ public abstract class BLEDriverInstance implements StatefulDevice
 
 	// the gateway mac address
 	protected String gwAddress;
+	
+	// the managed device mac
+	protected String macAddress;
 
 	// the driver polling time (each implementation might override the default
 	// behavior)
@@ -164,7 +167,7 @@ public abstract class BLEDriverInstance implements StatefulDevice
 			if ((macAddresses != null) && (macAddresses.size() == 1))
 			{
 				// the mac address
-				String macAddress = macAddresses.iterator().next();
+				this.macAddress = macAddresses.iterator().next();
 
 				// mandatory information available
 				// adapter is null at this stage and may be later filled with
@@ -303,4 +306,9 @@ public abstract class BLEDriverInstance implements StatefulDevice
 
 	public abstract void newMessageFromHouse(String characteristicUUID,
 			String serviceUUID, byte[] value);
+
+	public String getDeviceMacAddress()
+	{
+		return this.macAddress;
+	}
 }

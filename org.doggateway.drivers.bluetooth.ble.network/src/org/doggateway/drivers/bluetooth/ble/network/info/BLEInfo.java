@@ -48,4 +48,7 @@ public class BLEInfo extends ConfigurationConstants
 	
 	// the manufacturer id for bluetooth
 	public static final String MANUFACTURER = "Bluetooth+LE";
+
+	// the polling time millis configuration param
+	public static final String POLLING_TIME_MILLIS = "pollingTimeMillis";
 }
