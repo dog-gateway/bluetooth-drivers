@@ -93,15 +93,18 @@ public class BLEPollingWorker extends Thread
 							if (time - device.getLastPollFromEpoch() >= device
 									.getPollingTimeMillis())
 							{
+								System.err.println("Services: "+device.getServices().size());
 								// device shall be polled
 								for (ManagedBluetoothService currentService : device
 										.getServices())
 								{
+									
 									// re-check for polling need
 									if (time - currentService
 											.getLastPollFromEpoch() >= currentService
 													.getPollingTimeMillis())
 									{
+										System.err.println("chars: "+currentService.getCharacteristics().size());
 										// this service shall be polled
 										for (ManagedBluetoothCharacteristic currentCharacteristic : currentService
 												.getCharacteristics().values())
@@ -117,7 +120,7 @@ public class BLEPollingWorker extends Thread
 																currentService
 																		.getServiceUUID(),
 																currentCharacteristic
-																		.getChracteristicUUID());
+																		.getCharacteristicUUID());
 
 												// dispatch the results
 												// TODO check if shall be done
@@ -125,7 +128,7 @@ public class BLEPollingWorker extends Thread
 												// separate thread??
 												this.theDriver.notifyNewValue(
 														currentCharacteristic
-																.getChracteristicUUID(),
+																.getCharacteristicUUID(),
 														value,
 														currentService
 																.getServiceUUID(),

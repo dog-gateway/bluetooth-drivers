@@ -39,7 +39,7 @@ public class ManagedBluetoothService
 
 	// the set of characteristics of this service that shall be monitored.
 	private Hashtable<String, ManagedBluetoothCharacteristic> characteristics;
-	
+
 	// the low-level service to which this object refers
 	private BluetoothGattService lowService;
 
@@ -188,10 +188,11 @@ public class ManagedBluetoothService
 			ManagedBluetoothCharacteristic characteristic)
 	{
 		// add the characteristic
-		this.characteristics.put(characteristic.getChracteristicUUID(),
+		this.characteristics.put(characteristic.getCharacteristicUUID(),
 				characteristic);
 
-		// TODO: complete the process here, check more precisely what has to be done on insertion / deletion
+		// TODO: complete the process here, check more precisely what has to be
+		// done on insertion / deletion
 	}
 
 	public ManagedBluetoothCharacteristic removeManagedBluetoothCharacteristic(
@@ -199,13 +200,16 @@ public class ManagedBluetoothService
 	{
 		// remove the characteristic
 		return this.characteristics
-				.remove(characteristic.getChracteristicUUID());
+				.remove(characteristic.getCharacteristicUUID());
 
-		// TODO: complete the process here, check more precisely what has to be done on insertion / deletion
+		// TODO: complete the process here, check more precisely what has to be
+		// done on insertion / deletion
 	}
 
 	/**
-	 * Fills this Managed Service with data / references coming from corresponding service monitoring specification
+	 * Fills this Managed Service with data / references coming from
+	 * corresponding service monitoring specification
+	 * 
 	 * @param serviceSpec
 	 */
 	public void addServiceSpec(ServiceMonitorSpec serviceSpec)
@@ -217,7 +221,7 @@ public class ManagedBluetoothService
 			// check if the managed service already handles the
 			// characteristic, otherwise add it
 			ManagedBluetoothCharacteristic managedCharacteristic = this
-					.getCharacteristics().get(charSpec.getCharacteristicUUID());
+					.characteristics.get(charSpec.getCharacteristicUUID());
 
 			// check null
 			if (managedCharacteristic == null)
@@ -228,15 +232,15 @@ public class ManagedBluetoothService
 						charSpec.getCharacteristicUUID(),
 						charSpec.getMaximumAcceptablePollingTimeMillis(), this);
 
-				// update the back reference
-				charSpec.setManagedCharacteristic(managedCharacteristic);
+				//add the characteristic
+				 this.characteristics.put(managedCharacteristic.getCharacteristicUUID(), managedCharacteristic);
+							
+
 			}
-			else
-			{
-				// just add the char spec to the set of specs satisfied by the
-				// managed characteristic
-				managedCharacteristic.addCharacteristicMonitorSpec(charSpec);
-			}
+
+			// just add the char spec to the set of specs satisfied by the
+			// managed characteristic
+			managedCharacteristic.addCharacteristicMonitorSpec(charSpec);
 
 			// update the computed service polling time
 			if (this.getPollingTimeMillis() > managedCharacteristic
@@ -313,6 +317,7 @@ public class ManagedBluetoothService
 
 	/**
 	 * Gets the low-level service described by this managed service instance
+	 * 
 	 * @return the lowService
 	 */
 	public BluetoothGattService getLowService()
@@ -322,12 +327,13 @@ public class ManagedBluetoothService
 
 	/**
 	 * Sets the low-level service to which this instance is referred
-	 * @param lowService the lowService to set
+	 * 
+	 * @param lowService
+	 *            the lowService to set
 	 */
 	public void setLowService(BluetoothGattService lowService)
 	{
 		this.lowService = lowService;
 	}
-	
-	
+
 }

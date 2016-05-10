@@ -421,6 +421,8 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 
 			// add the registration to the managed device
 			device.addBLEDeviceRegistration(devReg);
+			
+			this.logger.log(LogService.LOG_INFO, "Added device registration");
 
 			// attach the low-level device
 			if (!this.attachLowLevelDevice(device))

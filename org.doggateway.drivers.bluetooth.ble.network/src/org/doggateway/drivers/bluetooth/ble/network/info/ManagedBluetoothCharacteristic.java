@@ -68,6 +68,9 @@ public class ManagedBluetoothCharacteristic
 		this.pollingTimeMillis = pollingTimeMillis;
 		// store the service owning the characteristic
 		this.service = service;
+
+		// init common
+		this.init();
 	}
 
 	/**
@@ -106,7 +109,7 @@ public class ManagedBluetoothCharacteristic
 	 * 
 	 * @return the chracteristicUUID The UUID of the characteristic
 	 */
-	public String getChracteristicUUID()
+	public String getCharacteristicUUID()
 	{
 		return chracteristicUUID;
 	}
@@ -213,10 +216,10 @@ public class ManagedBluetoothCharacteristic
 	public void addCharacteristicMonitorSpec(CharacteristicMonitorSpec spec)
 	{
 		// update the list of specs for the characteristic
-		if (!this.getMonitoringSpecs().contains(spec))
+		if (!this.monitoringSpecs.contains(spec))
 		{
 			// add the spec
-			this.addCharacteristicMonitorSpec(spec);
+			this.monitoringSpecs.add(spec);
 			// save the back reference
 			spec.setManagedCharacteristic(this);
 
