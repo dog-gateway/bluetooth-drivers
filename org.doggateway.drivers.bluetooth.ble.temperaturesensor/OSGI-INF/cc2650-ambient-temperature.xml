@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="activate" deactivate="deactivate" name="org.doggateway.drivers.bluetooth.ble.temperaturesensor">
+   <implementation class="org.doggateway.drivers.bluetooth.ble.temperaturesensor.CC2650TemperatureSensorDriver"/>
+   <property name="service.pid" type="String" value="org.doggateway.drivers.bluetooth.ble.temperaturesensor.cc2650"/>
+   <reference bind="networkAdded" cardinality="1..1" interface="org.doggateway.drivers.bluetooth.ble.network.interfaces.BLENetwork" name="BLENetwork" policy="dynamic" unbind="networkRemoved"/>
+   <reference bind="gatewayAdded" cardinality="1..1" interface="org.doggateway.drivers.bluetooth.ble.gateway.interfaces.BLEAdapterDriver" name="BLEAdapterDriver" policy="dynamic" unbind="gatewayRemoved"/>
+   <service>
+      <provide interface="org.osgi.service.cm.ManagedService"/>
+   </service>
+</scr:component>
