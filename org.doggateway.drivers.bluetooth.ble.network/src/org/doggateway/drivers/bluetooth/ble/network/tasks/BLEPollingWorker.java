@@ -93,7 +93,6 @@ public class BLEPollingWorker extends Thread
 							if (time - device.getLastPollFromEpoch() >= device
 									.getPollingTimeMillis())
 							{
-								System.err.println("Services: "+device.getServices().size());
 								// device shall be polled
 								for (ManagedBluetoothService currentService : device
 										.getServices())
@@ -104,7 +103,6 @@ public class BLEPollingWorker extends Thread
 											.getLastPollFromEpoch() >= currentService
 													.getPollingTimeMillis())
 									{
-										System.err.println("chars: "+currentService.getCharacteristics().size());
 										// this service shall be polled
 										for (ManagedBluetoothCharacteristic currentCharacteristic : currentService
 												.getCharacteristics().values())
@@ -134,6 +132,11 @@ public class BLEPollingWorker extends Thread
 																.getServiceUUID(),
 														currentCharacteristic
 																.getMonitoringSpecs());
+												
+												//adjust last read time stamp
+												currentCharacteristic.setLastPollFromEpoch(time);
+												currentService.setLastPollFromEpoch(time);
+												device.setLastPollFromEpoch(time);
 											}
 										}
 									}

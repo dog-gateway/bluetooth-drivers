@@ -131,12 +131,12 @@ public class ManagedBluetoothDevice
 	 * Sets the last time, in milliseconds from the epoch, at which this device
 	 * has been sampled
 	 * 
-	 * @param lastPollFromEpoch
+	 * @param time
 	 *            the lastPollFromEpoch to set
 	 */
-	public void setLastPollFromEpoch(int lastPollFromEpoch)
+	public void setLastPollFromEpoch(long time)
 	{
-		this.lastPollFromEpoch = lastPollFromEpoch;
+		this.lastPollFromEpoch = time;
 	}
 
 	/**
@@ -280,7 +280,7 @@ public class ManagedBluetoothDevice
 
 				// update the managed service according to the service spec
 				managedService.addServiceSpec(serviceSpec);
-
+				
 				// update the overall device polling time
 				if (this.pollingTimeMillis > managedService
 						.getPollingTimeMillis())

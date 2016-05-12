@@ -107,11 +107,13 @@ public abstract class BLEDriverInstance implements StatefulDevice
 		// compute the adapter flag: no GW MAC -> adapter
 		this.isAdapter = (this.gwAddress == null);
 
+		// store the logger
+				this.logger = logger;
+		
 		// store the polling time millis
 		this.pollingTimeMillis = pollingTimeMillis;
 
-		// store the logger
-		this.logger = logger;
+		System.err.println("Fill config polling time "+pollingTimeMillis);
 
 		// initialize datastructures
 		this.notifications = new HashMap<String, CNParameters>();

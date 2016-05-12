@@ -31,7 +31,7 @@ public class ManagedBluetoothCharacteristic
 	private int pollingTimeMillis;
 
 	// the last poll timestamp in milliseconds from the Epoch (system-specific)
-	private int lastPollFromEpoch;
+	private long lastPollFromEpoch;
 
 	// the service management data to which this instance belongs
 	private ManagedBluetoothService service;
@@ -156,7 +156,7 @@ public class ManagedBluetoothCharacteristic
 	 * 
 	 * @return the lastPollFromEpoch
 	 */
-	public int getLastPollFromEpoch()
+	public long getLastPollFromEpoch()
 	{
 		return lastPollFromEpoch;
 	}
@@ -168,7 +168,7 @@ public class ManagedBluetoothCharacteristic
 	 * @param lastPollFromEpoch
 	 *            the lastPollFromEpoch to set
 	 */
-	public void setLastPollFromEpoch(int lastPollFromEpoch)
+	public void setLastPollFromEpoch(long lastPollFromEpoch)
 	{
 		this.lastPollFromEpoch = lastPollFromEpoch;
 	}

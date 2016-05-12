@@ -162,6 +162,9 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 		this.discoveryTrials = BLENetworkDriverImpl.DISCOVERY_TRIALS;
 		this.discoveryIntervalMillis = BLENetworkDriverImpl.DISCOVERY_INTERVAL_MILLIS;
 		this.discoveryCyclingTimeMillis = BLENetworkDriverImpl.DISCOVERY_CYCLYING_TIME_MILLIS;
+		
+		//initialize the actual polling time
+		this.actualPollingTimeMillis = BLENetworkDriverImpl.DISCOVERY_INTERVAL_MILLIS;
 
 		// build the atomic references
 		this.bluetooth = new AtomicReference<BluetoothService>();
@@ -422,7 +425,7 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 			// add the registration to the managed device
 			device.addBLEDeviceRegistration(devReg);
 			
-			this.logger.log(LogService.LOG_INFO, "Added device registration");
+			this.logger.log(LogService.LOG_INFO, "Added device registration, polling time: "+device.getPollingTimeMillis());
 
 			// attach the low-level device
 			if (!this.attachLowLevelDevice(device))

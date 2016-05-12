@@ -103,10 +103,6 @@ public abstract class BLEDeviceDriver implements Driver, ManagedService
 
 		// fill the device categories
 		this.properFillDeviceCategories(this.driverInstanceClass);
-
-		// try registering the driver
-		this.registerBLEDeviceDriver();
-
 	}
 
 	public void deactivate()
@@ -232,7 +228,7 @@ public abstract class BLEDeviceDriver implements Driver, ManagedService
 			if (updateTimeAsString != null)
 			{
 				// parse the string
-				updateTimeMillis = Integer.valueOf(updateTimeAsString);
+				this.updateTimeMillis = Integer.valueOf(updateTimeAsString);
 			}
 			else
 			{
@@ -300,10 +296,10 @@ public abstract class BLEDeviceDriver implements Driver, ManagedService
 
 		// check if not already attached
 		if (!this.managedInstances.containsKey(device.getDeviceId()))
-		{
+		{			
 			// create a new driver instance
 			BLEDriverInstance driverInstance = this.createBLEDriverInstance(
-					this.network.get(), device, gwMacAddress, updateTimeMillis,
+					this.network.get(), device, gwMacAddress, this.updateTimeMillis,
 					context);
 
 			// connect this driver instance with the device

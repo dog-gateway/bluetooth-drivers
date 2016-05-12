@@ -243,10 +243,9 @@ public class ManagedBluetoothService
 			managedCharacteristic.addCharacteristicMonitorSpec(charSpec);
 
 			// update the computed service polling time
-			if (this.getPollingTimeMillis() > managedCharacteristic
+			if (this.pollingTimeMillis > managedCharacteristic
 					.getPollingTimeMillis())
-				this.setPollingTimeMillis(
-						managedCharacteristic.getPollingTimeMillis());
+				this.pollingTimeMillis = managedCharacteristic.getPollingTimeMillis();
 		}
 	}
 
