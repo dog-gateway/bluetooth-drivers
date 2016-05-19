@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>org.doggateway.drivers.bluetooth.ble.temperaturesensor.cc2650</name>
+	<name>org.doggateway.drivers.bluetooth.ble.temperatureandhumiditysensor.cc2650</name>
 	<comment></comment>
 	<projects>
 	</projects>
