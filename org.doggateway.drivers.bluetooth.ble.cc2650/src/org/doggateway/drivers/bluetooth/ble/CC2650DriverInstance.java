@@ -433,7 +433,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 				CC2650DriverInstance.HUMIDITY_SENSOR_CONFIG_UUID,
 				CC2650DriverInstance.HUMIDITY_SENSOR_CONFIG);
 		this.network.writeValue(this.getDeviceMacAddress(),
-				CC2650DriverInstance.OPTICAL_SENSOR_SERVICE_UUID,
+				CC2650DriverInstance.PRESSURE_SENSOR_SERVICE_UUID,
 				CC2650DriverInstance.PRESSURE_SENSOR_CONFIG_UUID,
 				CC2650DriverInstance.PRESSURE_SENSOR_CONFIG);
 		this.network.writeValue(this.getDeviceMacAddress(),
