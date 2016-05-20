@@ -131,24 +131,15 @@ public class CC2650TemperatureSensorDriverInstance extends BLEDriverInstance
 		if (characteristicUUID.equals(
 				CC2650TemperatureSensorDriverInstance.CHARACTERISTIC_UUID))
 		{
-			// check if notification is enabled
-			byte[] config = this.network.readValue(getDeviceMacAddress(),
-					SERVICE_UUID, CONFIG_UUID);
 
-			// if enabled do nothing
-			if (!(config[0] == 0x01))
-				this.enableCharacteristicsNotification();
-			else
-			{
-				// do not ask any more!?!?
+			// do not ask any more!?!?
 
-				// interpret the value
-				int ambientTempRaw = (0x0000ffff)&(value[2] + (value[3] << 8));
-				float ambientTempCelsius = this.convertCelsius(ambientTempRaw);
-				
-				//update status and notify
-				this.updateAndNotify((double)ambientTempCelsius);
-			}
+			// interpret the value
+			int ambientTempRaw = (0x0000ffff) & (value[2] + (value[3] << 8));
+			float ambientTempCelsius = this.convertCelsius(ambientTempRaw);
+
+			// update status and notify
+			this.updateAndNotify((double) ambientTempCelsius);
 
 		}
 
@@ -188,7 +179,7 @@ public class CC2650TemperatureSensorDriverInstance extends BLEDriverInstance
 	{
 		return raw / 128f;
 	}
-	
+
 	/**
 	 * Updates the current status of the device handled by this driver instance
 	 * and notifies any change
@@ -202,23 +193,22 @@ public class CC2650TemperatureSensorDriverInstance extends BLEDriverInstance
 	private void updateAndNotify(Double value)
 	{
 
-			// treat the temperature as a measure
-			DecimalMeasure<?> temperature = DecimalMeasure.valueOf(String.format("%.2f", value) + " "
-					+ SI.CELSIUS);
+		// treat the temperature as a measure
+		DecimalMeasure<?> temperature = DecimalMeasure
+				.valueOf(String.format("%.2f", value) + " " + SI.CELSIUS);
 
-			// update the current state
-			this.currentState.getState(TemperatureState.class.getSimpleName())
-					.getCurrentStateValue()[0].setValue(temperature);
+		// update the current state
+		this.currentState.getState(TemperatureState.class.getSimpleName())
+				.getCurrentStateValue()[0].setValue(temperature);
 
-			// update the status (Monitor Admin)
-			this.updateStatus();
+		// update the status (Monitor Admin)
+		this.updateStatus();
 
-			// notify the change
-			this.notifyNewTemperatureValue(temperature);
+		// notify the change
+		this.notifyNewTemperatureValue(temperature);
 
-			// log
-			this.logger.log(LogService.LOG_INFO,
-					"Device " + device.getDeviceId() + " temperature "
-							+ temperature.toString());
+		// log
+		this.logger.log(LogService.LOG_INFO, "Device " + device.getDeviceId()
+				+ " temperature " + temperature.toString());
 	}
 }

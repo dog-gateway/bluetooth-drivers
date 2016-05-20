@@ -45,10 +45,13 @@ public class CC2650DriverInstance extends BLEDriverInstance
 {
 	// constants for direct configuration of sensors
 	public static final String MOVEMENT_SENSOR_SERVICE_UUID = "f000aa80-0451-4000-b000-000000000000";
-	public static final String MOVEMENT_SENSOR_CHAR_UUID = "000aa81-0451-4000-b000-000000000000";
+	public static final String MOVEMENT_SENSOR_CHAR_UUID = "f000aa81-0451-4000-b000-000000000000";
 	public static final String MOVEMENT_SENSOR_CONFIG_UUID = "f000aa82-0451-4000-b000-000000000000";
+	public static final String MOVEMENT_SENSOR_ENABLE_UUID = "f0002902-0451-4000-b000-000000000000";
 	public static final byte[] MOVEMENT_SENSOR_CONFIG = { (byte) 0xff,
 			(byte) 0x02 };
+	public static final byte[] MOVEMENT_SENSOR_ENABLE = { (byte) 0x01,
+			(byte) 0x00 };
 
 	public static final String IR_SENSOR_SERVICE_UUID = "f000aa00-0451-4000-b000-000000000000";
 	public static final String IR_SENSOR_CHAR_UUID = "f000aa01-0451-4000-b000-000000000000";
@@ -145,8 +148,8 @@ public class CC2650DriverInstance extends BLEDriverInstance
 	}
 
 	@Override
-	public void notifyNew3DAccelerationValue(Measure<?,?> accZ, Measure<?,?> accX,
-			Measure<?,?> accY)
+	public void notifyNew3DAccelerationValue(Measure<?, ?> accZ,
+			Measure<?, ?> accX, Measure<?, ?> accY)
 	{
 		((CC2650SensorTag) this).notifyNew3DAccelerationValue(accZ, accX, accY);
 	}
@@ -158,8 +161,8 @@ public class CC2650DriverInstance extends BLEDriverInstance
 	}
 
 	@Override
-	public void notifyNew3DMagnetometerValue(Measure<?,?> magY, Measure<?,?> magZ,
-			Measure<?,?> magX)
+	public void notifyNew3DMagnetometerValue(Measure<?, ?> magY,
+			Measure<?, ?> magZ, Measure<?, ?> magX)
 	{
 		((CC2650SensorTag) this).notifyNew3DMagnetometerValue(magY, magZ, magX);
 	}
@@ -178,8 +181,8 @@ public class CC2650DriverInstance extends BLEDriverInstance
 	}
 
 	@Override
-	public void notifyNew3DGyroscopeValue(Measure<?,?> gyroX, Measure<?,?> gyroY,
-			Measure<?,?> gyroZ)
+	public void notifyNew3DGyroscopeValue(Measure<?, ?> gyroX,
+			Measure<?, ?> gyroY, Measure<?, ?> gyroZ)
 	{
 		((CC2650SensorTag) this).notifyNew3DGyroscopeValue(gyroX, gyroY, gyroZ);
 	}
@@ -216,25 +219,21 @@ public class CC2650DriverInstance extends BLEDriverInstance
 		// prepare the device state map
 		this.currentState = new DeviceStatus(device.getDeviceId());
 
-		// check if a dedicated movement time millis has been specified
-		if (this.movementPollingTimeMillis != this.pollingTimeMillis)
-		{
-			// set-up movement polling time in ble device registrations
-			ServiceMonitorSpec movementSpec = this.bleDevReg.getServiceSpec(
-					CC2650DriverInstance.MOVEMENT_SENSOR_SERVICE_UUID);
-
-			// check not null
-			if (movementSpec != null)
-			{
-				// iterate over char specs
-				for (CharacteristicMonitorSpec charSpec : movementSpec
-						.getCharacteristicSpecs())
-				{
-					charSpec.setMaximumAcceptablePollingTimeMillis(
-							movementPollingTimeMillis);
-				}
-			}
-		}
+		// TODO check how support this as when this method is calles the
+		// movement polling time has not yet been stored.
+		/*
+		 * // check if a dedicated movement time millis has been specified if
+		 * (this.movementPollingTimeMillis != this.pollingTimeMillis) { //
+		 * set-up movement polling time in ble device registrations
+		 * ServiceMonitorSpec movementSpec = this.bleDevReg.getServiceSpec(
+		 * CC2650DriverInstance.MOVEMENT_SENSOR_SERVICE_UUID);
+		 * 
+		 * // check not null if (movementSpec != null) { // iterate over char
+		 * specs for (CharacteristicMonitorSpec charSpec : movementSpec
+		 * .getCharacteristicSpecs()) {
+		 * charSpec.setMaximumAcceptablePollingTimeMillis(
+		 * movementPollingTimeMillis); } } }
+		 */
 	}
 
 	@Override
@@ -256,25 +255,34 @@ public class CC2650DriverInstance extends BLEDriverInstance
 	{
 		// message shall interpreted differently depending on service /
 		// characteristic UUID
-		switch (characteristicUUID)
+		if (characteristicUUID.equals(IR_SENSOR_CHAR_UUID))
 		{
-			case IR_SENSOR_CHAR_UUID:
-			{
-				this.handleIRSensorData(value);
-				break;
-			}
-			case HUMIDITY_SENSOR_CHAR_UUID:
-			{
-				this.handleHumidityData(value);
-				break;
-			}
-			case MOVEMENT_SENSOR_CHAR_UUID:
-			{
-				this.handleMovementData(value);
-				break;
-			}
+			this.handleIRSensorData(value);
+		}
+		else if (characteristicUUID.equals(HUMIDITY_SENSOR_CHAR_UUID))
+		{
+			this.handleHumidityData(value);
+
+		}
+		else if (characteristicUUID.equals(MOVEMENT_SENSOR_CHAR_UUID))
+		{
+			this.handleMovementData(value);
+
+		}
+		else if (characteristicUUID.equals(PRESSURE_SENSOR_CHAR_UUID))
+		{
+			this.handlePressureData(value);
+
+		}
+		else if (characteristicUUID.equals(OPTICAL_SENSOR_CHAR_UUID))
+		{
+			this.handleOpticalData(value);
+
 		}
 
+		// if found, update the status and notify
+		// update the status (Monitor Admin)
+		this.updateStatus();
 	}
 
 	private void initializeStates()
@@ -308,7 +316,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 				.setValue(DecimalMeasure.valueOf("0 " + SI.CELSIUS.toString()));
 
 		// the initial state
-		MultipleTemperatureState tState = (MultipleTemperatureState) new ContinuousState(
+		MultipleTemperatureState tState = new MultipleTemperatureState(
 				(StateValue) tValueObject, (StateValue) tValueAmbient,
 				(StateValue) tValueHumidity, (StateValue) tValuePressure);
 
@@ -410,6 +418,10 @@ public class CC2650DriverInstance extends BLEDriverInstance
 		// on the given sensor characteristic
 		this.network.writeValue(this.getDeviceMacAddress(),
 				CC2650DriverInstance.MOVEMENT_SENSOR_SERVICE_UUID,
+				CC2650DriverInstance.MOVEMENT_SENSOR_ENABLE_UUID,
+				CC2650DriverInstance.MOVEMENT_SENSOR_ENABLE);
+		this.network.writeValue(this.getDeviceMacAddress(),
+				CC2650DriverInstance.MOVEMENT_SENSOR_SERVICE_UUID,
 				CC2650DriverInstance.MOVEMENT_SENSOR_CONFIG_UUID,
 				CC2650DriverInstance.MOVEMENT_SENSOR_CONFIG);
 		this.network.writeValue(this.getDeviceMacAddress(),
@@ -432,106 +444,128 @@ public class CC2650DriverInstance extends BLEDriverInstance
 
 	private void handleIRSensorData(byte[] value)
 	{
-		// check if notification is enabled
-		byte[] config = this.network.readValue(getDeviceMacAddress(),
-				CC2650DriverInstance.IR_SENSOR_SERVICE_UUID,
-				CC2650DriverInstance.IR_SENSOR_CONFIG_UUID);
 
-		// if enabled do nothing
-		if (!(config[0] == CC2650DriverInstance.IR_SENSOR_CONFIG[0]))
-		{
-			this.network.writeValue(this.getDeviceMacAddress(),
-					CC2650DriverInstance.IR_SENSOR_SERVICE_UUID,
-					CC2650DriverInstance.IR_SENSOR_CONFIG_UUID,
-					CC2650DriverInstance.IR_SENSOR_CONFIG);
-		}
-		else
-		{
-			// interpret the value
-			int ambientTempRaw = (0x0000ffff) & (value[2] + (value[3] << 8));
-			float ambientTempCelsius = ambientTempRaw / 128f;
+		// interpret the value
+		int ambientTempRaw = (0x0000ffff) & (value[2] + (value[3] << 8));
+		float ambientTempCelsius = ambientTempRaw / 128f;
 
-			// update the status and notify
-			this.updateAndNotifyTemperature("IRAmbient", ambientTempCelsius);
+		// update the status and notify
+		this.updateAndNotifyTemperature("IRAmbient", ambientTempCelsius);
 
-			// interpret the value
-			int objectTempRaw = (0x0000ffff) & (value[0] + (value[1] << 8));
-			float objectTempCelsius = objectTempRaw / 128f;
+		// interpret the value
+		int objectTempRaw = (0x0000ffff) & (value[0] + (value[1] << 8));
+		float objectTempCelsius = objectTempRaw / 128f;
 
-			// update the status and notify
-			this.updateAndNotifyTemperature("IRObject", objectTempCelsius);
-		}
+		// update the status and notify
+		this.updateAndNotifyTemperature("IRObject", objectTempCelsius);
+
 	}
 
 	private void handleHumidityData(byte[] value)
 	{
-		// check if notification is enabled
-		byte[] config = this.network.readValue(getDeviceMacAddress(),
-				CC2650DriverInstance.HUMIDITY_SENSOR_SERVICE_UUID,
-				CC2650DriverInstance.HUMIDITY_SENSOR_CONFIG_UUID);
 
-		// if enabled do nothing
-		if (!(config[0] == CC2650DriverInstance.HUMIDITY_SENSOR_CONFIG[0]))
-		{
-			this.network.writeValue(this.getDeviceMacAddress(),
-					CC2650DriverInstance.HUMIDITY_SENSOR_SERVICE_UUID,
-					CC2650DriverInstance.HUMIDITY_SENSOR_CONFIG_UUID,
-					CC2650DriverInstance.HUMIDITY_SENSOR_CONFIG);
-		}
-		else
-		{
-			// interpret the value
-			int temperatureValueRaw = (0x0000ffff)
-					& (value[0] + (value[1] << 8));
-			int humidityValueRaw = (0x0000ffff) & (value[2] + (value[3] << 8));
+		// interpret the value
+		int temperatureValueRaw = (0x0000ffff) & (value[0] + (value[1] << 8));
+		int humidityValueRaw = (0x0000ffff) & (value[2] + (value[3] << 8));
 
-			float temperatureCelsius = (temperatureValueRaw / 65536f) * 165f
-					- 40f;
-			float humidityPercent = (humidityValueRaw / 65536f) * 100;
+		float temperatureCelsius = (temperatureValueRaw / 65536f) * 165f - 40f;
+		float humidityPercent = (humidityValueRaw / 65536f) * 100;
 
-			// update and notify
-			this.updateAndNotifyTemperature("Humidity", temperatureCelsius);
-
-			this.updateAndNotifyHumidity(humidityPercent);
-		}
+		// update and notify
+		this.updateAndNotifyTemperature("Humidity", temperatureCelsius);
+		this.updateAndNotifyHumidity(humidityPercent);
 
 	}
 
 	private void handleMovementData(byte[] value)
-	{// check if notification is enabled
-		byte[] config = this.network.readValue(getDeviceMacAddress(),
-				CC2650DriverInstance.MOVEMENT_SENSOR_SERVICE_UUID,
-				CC2650DriverInstance.MOVEMENT_SENSOR_CONFIG_UUID);
-		if ((config[0] != CC2650DriverInstance.MOVEMENT_SENSOR_CONFIG[0])
-				|| (config[1] != CC2650DriverInstance.MOVEMENT_SENSOR_CONFIG[1]))
-		{
-			this.network.writeValue(this.getDeviceMacAddress(),
-					CC2650DriverInstance.MOVEMENT_SENSOR_SERVICE_UUID,
-					CC2650DriverInstance.MOVEMENT_SENSOR_CONFIG_UUID,
-					CC2650DriverInstance.MOVEMENT_SENSOR_CONFIG);
-		}
-		else
-		{
-			// interpret the data
-			int gyroXRaw = (value[0] + (value[1] << 8)); // signed integer
-			int gyroYRaw = (value[2] + (value[3] << 8));
-			int gyroZRaw = (value[4] + (value[5] << 8));
-			int accXRaw = (value[6] + (value[7] << 8));
-			int accYRaw = (value[8] + (value[9] << 8));
-			int accZRaw = (value[10] + (value[11] << 8));
-			int magXRaw = (value[12] + (value[13] << 8));
-			int magYRaw = (value[14] + (value[15] << 8));
-			int magZRaw = (value[16] + (value[18] << 8));
+	{
 
-			// convert data
-			this.updateAndNotifyGyroscope(this.gyroConvert(gyroXRaw),
-					this.gyroConvert(gyroYRaw), this.gyroConvert(gyroZRaw));
-		}
+		// interpret the data
+		int gyroXRaw = (value[0] + (value[1] << 8)); // signed integer
+		int gyroYRaw = (value[2] + (value[3] << 8));
+		int gyroZRaw = (value[4] + (value[5] << 8));
+		int accXRaw = (value[6] + (value[7] << 8));
+		int accYRaw = (value[8] + (value[9] << 8));
+		int accZRaw = (value[10] + (value[11] << 8));
+		int magXRaw = (value[12] + (value[13] << 8));
+		int magYRaw = (value[14] + (value[15] << 8));
+		int magZRaw = (value[16] + (value[17] << 8));
+
+		// convert data
+		this.updateAndNotifyGyroscope(this.gyroConvert(gyroXRaw),
+				this.gyroConvert(gyroYRaw), this.gyroConvert(gyroZRaw));
+
+		this.updateAndNotifyAcceleration(this.accConvert(accXRaw),
+				this.accConvert(accYRaw), this.accConvert(accZRaw));
+
+		this.updateAndNotifyMagnetometer((float) magXRaw, (float) magYRaw,
+				(float) magZRaw);
+
+	}
+
+	private void handlePressureData(byte[] value)
+	{
+
+		// interpret the value
+		int temperatureValueRaw = (0x00ffffff)
+				& (value[0] + (value[1] << 8) + (value[2] << 16));
+		int pressureValueRaw = (0x00ffffff)
+				& (value[3] + (value[4] << 8) + (value[5] << 16));
+
+		float temperatureCelsius = temperatureValueRaw / 100.0f;
+		float pressureHPa = pressureValueRaw / 100.0f;
+
+		// update and notify
+		this.updateAndNotifyTemperature("Pressure", temperatureCelsius);
+		this.updateAndNotifyPressure(pressureHPa);
+
+	}
+
+	private void handleOpticalData(byte[] value)
+	{
+
+		int lightIntensityValueRaw = (0x0000ffff)
+				& (value[0] + (value[1] << 8));
+		int m = lightIntensityValueRaw & (0x00000fff);
+		int e = (lightIntensityValueRaw & (0x0000f000)) >> 12;
+		double lightIntensityLux = m * (0.01d * Math.pow(2.0d, (double) e));
+		this.updateAndNotifyLuminosity(lightIntensityLux);
+
 	}
 
 	private float gyroConvert(int value)
 	{
 		return (value * 1.0f) / (65536 / 500);
+	}
+
+	private float accConvert(int value)
+	{
+		float valueFloat = 0;
+		switch (CC2650DriverInstance.MOVEMENT_SENSOR_CONFIG[1])
+		{
+			case 0x00:
+			{
+				valueFloat = (value * 1.0f) / (32768 / 2);
+				break;
+			}
+			case 0x01:
+			{
+				valueFloat = (value * 1.0f) / (32768 / 4);
+				break;
+			}
+			case 0x02:
+			{
+				valueFloat = (value * 1.0f) / (32768 / 8);
+				break;
+			}
+			case 0x03:
+			{
+				valueFloat = (value * 1.0f) / (32768 / 16);
+				break;
+			}
+		}
+
+		return valueFloat;
 	}
 
 	private void updateAndNotifyTemperature(String sensorId, float value)
@@ -558,13 +592,8 @@ public class CC2650DriverInstance extends BLEDriverInstance
 				found = true;
 			}
 		}
-
-		// if found, update the status and notify
-		// update the status (Monitor Admin)
-		this.updateStatus();
-
 		// notify
-		this.notifyChangedTemperatureAt(temperature, sensorId);
+		// this.notifyChangedTemperatureAt(temperature, sensorId);
 
 		// log
 		this.logger.log(LogService.LOG_INFO, "Device " + device.getDeviceId()
@@ -581,9 +610,6 @@ public class CC2650DriverInstance extends BLEDriverInstance
 		this.currentState
 				.getState(HumidityMeasurementState.class.getSimpleName())
 				.getCurrentStateValue()[0].setValue(humidity);
-
-		// update the status (Monitor Admin)
-		this.updateStatus();
 
 		// notify
 		this.notifyChangedRelativeHumidity(humidity);
@@ -619,15 +645,120 @@ public class CC2650DriverInstance extends BLEDriverInstance
 				TridimensionalGyroscopeState.class.getSimpleName(),
 				new TridimensionalGyroscopeState(gyroXValue, gyroYValue,
 						gyroZValue));
+		// notify
+		// this.notifyNew3DGyroscopeValue(gyroXDeg, gyroYDeg, gyroZDeg);
 
-		// update the status (Monitor Admin)
-		this.updateStatus();
-		
-		//notify
-		this.notifyNew3DGyroscopeValue(gyroXDeg, gyroYDeg, gyroZDeg);
-		
-		//log
+		// log
+		this.logger.log(LogService.LOG_INFO,
+				"Device: " + device.getDeviceId() + " gyroX: "
+						+ gyroXDeg.toString() + " gyroY: " + gyroYDeg.toString()
+						+ " gyroZ: " + gyroZDeg.toString());
+	}
+
+	private void updateAndNotifyAcceleration(float accX, float accY, float accZ)
+	{
+		DecimalMeasure<?> accXG = DecimalMeasure.valueOf(accX + " " + NonSI.G);
+		DecimalMeasure<?> accYG = DecimalMeasure.valueOf(accY + " " + NonSI.G);
+		DecimalMeasure<?> accZG = DecimalMeasure.valueOf(accZ + " " + NonSI.G);
+
+		// set the 3D Acceleration state
+		AccelerationStateValue accXValue = new AccelerationStateValue();
+		accXValue.setFeature("axisID", "x");
+		accXValue.setValue(accXG);
+
+		AccelerationStateValue accYValue = new AccelerationStateValue();
+		accYValue.setFeature("axisID", "y");
+		accYValue.setValue(accYG);
+
+		AccelerationStateValue accZValue = new AccelerationStateValue();
+		accZValue.setFeature("axisID", "z");
+		accZValue.setValue(accZG);
+
+		this.currentState.setState(
+				TridimensionalAccelerationState.class.getSimpleName(),
+				new TridimensionalAccelerationState(accXValue, accYValue,
+						accZValue));
+
+		// notify
+		// this.notifyNew3DAccelerationValue(accXG, accYG, accZG);
+
+		// log
+		this.logger.log(LogService.LOG_INFO,
+				"Device: " + device.getDeviceId() + " accX: " + accXG.toString()
+						+ " accY: " + accYG.toString() + " accZ: "
+						+ accZG.toString());
+	}
+
+	private void updateAndNotifyMagnetometer(float magX, float magY, float magZ)
+	{
+		DecimalMeasure<?> magXuT = DecimalMeasure
+				.valueOf(magX + " " + SI.MICRO(SI.TESLA));
+		DecimalMeasure<?> magYuT = DecimalMeasure
+				.valueOf(magY + " " + SI.MICRO(SI.TESLA));
+		DecimalMeasure<?> magZuT = DecimalMeasure
+				.valueOf(magZ + " " + SI.MICRO(SI.TESLA));
+
+		// set the 3D Acceleration state
+		MagnetometerStateValue magXValue = new MagnetometerStateValue();
+		magXValue.setFeature("axisID", "x");
+		magXValue.setValue(magXuT);
+
+		MagnetometerStateValue magYValue = new MagnetometerStateValue();
+		magYValue.setFeature("axisID", "y");
+		magYValue.setValue(magYuT);
+
+		MagnetometerStateValue magZValue = new MagnetometerStateValue();
+		magZValue.setFeature("axisID", "z");
+		magZValue.setValue(magZuT);
+
+		this.currentState.setState(
+				TridimensionalMagnetometerState.class.getSimpleName(),
+				new TridimensionalMagnetometerState(magXValue, magYValue,
+						magZValue));
+
+		// notify
+		// this.notifyNew3DMagnetometerValue(magXuT, magYuT, magZuT);
+
+		// log
+		this.logger.log(LogService.LOG_INFO,
+				"Device: " + device.getDeviceId() + " magX: "
+						+ magXuT.toString() + " magY: " + magYuT.toString()
+						+ " magZ: " + magZuT.toString());
+	}
+
+	private void updateAndNotifyPressure(float pressureValue)
+	{
+		// treat the temperature as a measure
+		DecimalMeasure<?> pressure = DecimalMeasure
+				.valueOf(pressureValue + " " + SI.HECTO(SI.PASCAL));
+
+		// update the current state
+		this.currentState.getState(PressureState.class.getSimpleName())
+				.getCurrentStateValue()[0].setValue(pressure);
+
+		// notify
+		this.notifyNewPressureValue(pressure);
+
+		// log
 		this.logger.log(LogService.LOG_INFO, "Device: " + device.getDeviceId()
-		+ " gyroX: " + gyroXDeg.toString()+ " gyroY: "+gyroYDeg.toString()+" gyroZ: "+gyroZDeg.toString());
+				+ " Pressure: " + pressure.toString());
+	}
+
+	private void updateAndNotifyLuminosity(double luminosityValue)
+	{
+		// treat the temperature as a measure
+		DecimalMeasure<?> luminosity = DecimalMeasure
+				.valueOf(luminosityValue + " " + SI.LUX);
+
+		// update the current state
+		this.currentState.getState(LightIntensityState.class.getSimpleName())
+				.getCurrentStateValue()[0].setValue(luminosity);
+
+		// notify
+		this.notifyNewLuminosityValue(luminosity);
+
+		// log
+		this.logger.log(LogService.LOG_INFO, "Device: " + device.getDeviceId()
+				+ " Luminosity: " + luminosity.toString());
 	}
 }

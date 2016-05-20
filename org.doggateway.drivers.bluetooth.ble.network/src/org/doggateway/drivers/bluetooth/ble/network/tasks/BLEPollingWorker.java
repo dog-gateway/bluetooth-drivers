@@ -112,6 +112,8 @@ public class BLEPollingWorker extends Thread
 													.getLastPollFromEpoch() >= currentCharacteristic
 															.getPollingTimeMillis())
 											{
+												long eTime = System.currentTimeMillis();
+												
 												// poll the characteristic
 												byte[] value = this.theDriver
 														.readValue(device,
@@ -119,6 +121,8 @@ public class BLEPollingWorker extends Thread
 																		.getServiceUUID(),
 																currentCharacteristic
 																		.getCharacteristicUUID());
+												
+												System.err.println("Elapsed: "+(System.currentTimeMillis()-eTime));
 
 												// dispatch the results
 												// TODO check if shall be done
@@ -152,6 +156,7 @@ public class BLEPollingWorker extends Thread
 			// sleep for the current polling time
 			try
 			{
+				System.err.println("Sleeping for: "+theDriver.getActualPollingTimeMillis());
 				Thread.sleep(theDriver.getActualPollingTimeMillis());
 			}
 			catch (InterruptedException e)

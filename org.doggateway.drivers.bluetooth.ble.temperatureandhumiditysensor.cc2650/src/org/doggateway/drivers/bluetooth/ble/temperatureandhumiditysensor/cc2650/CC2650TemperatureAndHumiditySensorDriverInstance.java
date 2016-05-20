@@ -152,16 +152,6 @@ public class CC2650TemperatureAndHumiditySensorDriverInstance
 		if (characteristicUUID.equals(
 				CC2650TemperatureAndHumiditySensorDriverInstance.TEMPERATURE_HUMIDITY_CHARACTERISTIC_UUID))
 		{
-			// check if notification is enabled
-			byte[] config = this.network.readValue(getDeviceMacAddress(),
-					CC2650TemperatureAndHumiditySensorDriverInstance.TEMPERATURE_HUMIDITY_SERVICE_UUID,
-					CC2650TemperatureAndHumiditySensorDriverInstance.TEMPERATURE_HUMIDITY_CONFIG_UUID);
-
-			// if enabled do nothing
-			if (!(config[0] == 0x01))
-				this.enableCharacteristicsNotification();
-			else
-			{
 				// do not ask any more!?!?
 
 				// interpret the value
@@ -176,8 +166,6 @@ public class CC2650TemperatureAndHumiditySensorDriverInstance
 				// update status and notify
 				this.updateAndNotify((double) temperatureCelsius,
 						(double) humidityPercent);
-			}
-
 		}
 
 	}
