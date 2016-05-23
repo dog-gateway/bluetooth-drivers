@@ -83,15 +83,13 @@ public class CC2650TemperatureAndHumiditySensorDriverInstance
 	@Override
 	public void notifyChangedRelativeHumidity(Measure<?, ?> relativeHumidity)
 	{
-		// TODO Auto-generated method stub
-
+		((TemperatureAndHumiditySensor)this.device).notifyChangedRelativeHumidity(relativeHumidity);
 	}
 
 	@Override
 	public void storeGroup(Integer groupID)
 	{
-		// Not yet supported
-
+		//not yet implemented
 	}
 
 	@Override

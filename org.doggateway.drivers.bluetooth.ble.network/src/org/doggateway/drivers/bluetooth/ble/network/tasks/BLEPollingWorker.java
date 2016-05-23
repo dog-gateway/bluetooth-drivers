@@ -21,6 +21,7 @@ import org.doggateway.drivers.bluetooth.ble.network.BLENetworkDriverImpl;
 import org.doggateway.drivers.bluetooth.ble.network.info.ManagedBluetoothCharacteristic;
 import org.doggateway.drivers.bluetooth.ble.network.info.ManagedBluetoothDevice;
 import org.doggateway.drivers.bluetooth.ble.network.info.ManagedBluetoothService;
+import org.osgi.service.log.LogService;
 
 /**
  * @author bonino
@@ -122,7 +123,7 @@ public class BLEPollingWorker extends Thread
 																currentCharacteristic
 																		.getCharacteristicUUID());
 												
-												System.err.println("Elapsed: "+(System.currentTimeMillis()-eTime));
+												this.theDriver.getLogger().log(LogService.LOG_INFO,"Elapsed: "+(System.currentTimeMillis()-eTime));
 
 												// dispatch the results
 												// TODO check if shall be done
@@ -156,7 +157,7 @@ public class BLEPollingWorker extends Thread
 			// sleep for the current polling time
 			try
 			{
-				System.err.println("Sleeping for: "+theDriver.getActualPollingTimeMillis());
+				this.theDriver.getLogger().log(LogService.LOG_INFO,"Sleeping for: "+theDriver.getActualPollingTimeMillis());
 				Thread.sleep(theDriver.getActualPollingTimeMillis());
 			}
 			catch (InterruptedException e)

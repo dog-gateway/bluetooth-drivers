@@ -18,7 +18,6 @@ import org.osgi.service.log.LogService;
 import it.polito.elite.dog.core.library.model.ControllableDevice;
 import it.polito.elite.dog.core.library.model.DeviceStatus;
 import it.polito.elite.dog.core.library.model.devicecategory.CC2650SensorTag;
-import it.polito.elite.dog.core.library.model.state.ContinuousState;
 import it.polito.elite.dog.core.library.model.state.HumidityMeasurementState;
 import it.polito.elite.dog.core.library.model.state.LightIntensityState;
 import it.polito.elite.dog.core.library.model.state.MultipleOnOffState;
@@ -73,6 +72,11 @@ public class CC2650DriverInstance extends BLEDriverInstance
 	public static final String OPTICAL_SENSOR_CONFIG_UUID = "f000aa72-0451-4000-b000-000000000000";
 	public static final byte[] OPTICAL_SENSOR_CONFIG = { (byte) 0x01 };
 
+	public static final String IO_SERVICE_UUID = "f000aa64-0451-4000-b000-000000000000";
+	public static final String IO_CHAR_UUID = "f000aa65-0451-4000-b000-000000000000";
+	public static final String IO_CONFIG_UUID = "f000aa66-0451-4000-b000-000000000000";
+	public static final byte[] IO_CONFIG = { (byte) 0x01};
+
 	// the movement polling rate
 	private int movementPollingTimeMillis;
 
@@ -85,8 +89,34 @@ public class CC2650DriverInstance extends BLEDriverInstance
 
 		this.movementPollingTimeMillis = movementPollingTimeMillis;
 
+		// TODO check how support this as when this method is calles the
+		// movement polling time has not yet been stored.
+
+		// check if a dedicated movement time millis has been specified
+		if (this.movementPollingTimeMillis != this.pollingTimeMillis)
+		{
+			// set-up movement polling time in ble device registrations
+			ServiceMonitorSpec movementSpec = this.bleDevReg.getServiceSpec(
+					CC2650DriverInstance.MOVEMENT_SENSOR_SERVICE_UUID);
+
+			// check not null
+			if (movementSpec != null)
+			{
+				// iterate over char specs
+				for (CharacteristicMonitorSpec charSpec : movementSpec
+						.getCharacteristicSpecs())
+				{
+					charSpec.setMaximumAcceptablePollingTimeMillis(
+							movementPollingTimeMillis);
+				}
+			}
+		}
+
+		this.network.addDeviceRegistration(bleDevReg);
+
 		// initialize the device status
 		this.initializeStates();
+
 	}
 
 	@Override
@@ -148,69 +178,93 @@ public class CC2650DriverInstance extends BLEDriverInstance
 	}
 
 	@Override
+	public void on()
+	{
+		// turn on the buzzer
+		this.network.writeValue(this.getDeviceMacAddress(),
+				CC2650DriverInstance.IO_SERVICE_UUID,
+				CC2650DriverInstance.IO_CHAR_UUID, new byte[] { (byte) 0x07 });
+
+	}
+
+	@Override
+	public void off()
+	{
+		// turn on the buzzer
+		this.network.writeValue(this.getDeviceMacAddress(),
+				CC2650DriverInstance.IO_SERVICE_UUID,
+				CC2650DriverInstance.IO_CHAR_UUID, new byte[] { (byte) 0x00 });
+
+	}
+
+	@Override
 	public void notifyNew3DAccelerationValue(Measure<?, ?> accZ,
 			Measure<?, ?> accX, Measure<?, ?> accY)
 	{
-		((CC2650SensorTag) this).notifyNew3DAccelerationValue(accZ, accX, accY);
+		((CC2650SensorTag) this.device).notifyNew3DAccelerationValue(accZ, accX,
+				accY);
 	}
 
 	@Override
 	public void notifyReleased(String buttonID)
 	{
-		((CC2650SensorTag) this).notifyReleased(buttonID);
+		((CC2650SensorTag) this.device).notifyReleased(buttonID);
 	}
 
 	@Override
 	public void notifyNew3DMagnetometerValue(Measure<?, ?> magY,
 			Measure<?, ?> magZ, Measure<?, ?> magX)
 	{
-		((CC2650SensorTag) this).notifyNew3DMagnetometerValue(magY, magZ, magX);
+		((CC2650SensorTag) this.device).notifyNew3DMagnetometerValue(magY, magZ,
+				magX);
 	}
 
 	@Override
 	public void notifyChangedRelativeHumidity(Measure<?, ?> relativeHumidity)
 	{
-		((CC2650SensorTag) this)
+		((CC2650SensorTag) this.device)
 				.notifyChangedRelativeHumidity(relativeHumidity);
 	}
 
 	@Override
 	public void notifyNewPressureValue(Measure<?, ?> pressureValue)
 	{
-		((CC2650SensorTag) this).notifyNewPressureValue(pressureValue);
+		((CC2650SensorTag) this.device).notifyNewPressureValue(pressureValue);
 	}
 
 	@Override
 	public void notifyNew3DGyroscopeValue(Measure<?, ?> gyroX,
 			Measure<?, ?> gyroY, Measure<?, ?> gyroZ)
 	{
-		((CC2650SensorTag) this).notifyNew3DGyroscopeValue(gyroX, gyroY, gyroZ);
+		((CC2650SensorTag) this.device).notifyNew3DGyroscopeValue(gyroX, gyroY,
+				gyroZ);
 	}
 
 	@Override
 	public void notifyChangedTemperatureAt(Measure<?, ?> temperatureValue,
 			String sensorID)
 	{
-		((CC2650SensorTag) this).notifyChangedTemperatureAt(temperatureValue,
-				sensorID);
+		((CC2650SensorTag) this.device)
+				.notifyChangedTemperatureAt(temperatureValue, sensorID);
 	}
 
 	@Override
 	public void notifyPressed(String buttonID)
 	{
-		((CC2650SensorTag) this).notifyPressed(buttonID);
+		((CC2650SensorTag) this.device).notifyPressed(buttonID);
 	}
 
 	@Override
 	public void notifyNewLuminosityValue(Measure<?, ?> luminosityValue)
 	{
-		((CC2650SensorTag) this).notifyNewLuminosityValue(luminosityValue);
+		((CC2650SensorTag) this.device)
+				.notifyNewLuminosityValue(luminosityValue);
 	}
 
 	@Override
 	public void updateStatus()
 	{
-		((CC2650SensorTag) this).updateStatus();
+		((CC2650SensorTag) this.device).updateStatus();
 	}
 
 	@Override
@@ -240,7 +294,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 	protected void addToNetworkDriver(BLEDeviceRegistration bleDevReg)
 	{
 		// add the ble registration to the driver
-		this.network.addDeviceRegistration(bleDevReg);
+		// this.network.addDeviceRegistration(bleDevReg);
 
 		// try turning on the notification at ble level
 		// can be done on the sole basis of configuration information
@@ -440,6 +494,14 @@ public class CC2650DriverInstance extends BLEDriverInstance
 				CC2650DriverInstance.OPTICAL_SENSOR_SERVICE_UUID,
 				CC2650DriverInstance.OPTICAL_SENSOR_CONFIG_UUID,
 				CC2650DriverInstance.OPTICAL_SENSOR_CONFIG);
+		this.network.writeValue(this.getDeviceMacAddress(),
+				CC2650DriverInstance.IO_SERVICE_UUID,
+				CC2650DriverInstance.IO_CONFIG_UUID,
+				CC2650DriverInstance.IO_CONFIG);
+		this.network.writeValue(this.getDeviceMacAddress(),
+				CC2650DriverInstance.IO_SERVICE_UUID,
+				CC2650DriverInstance.IO_CHAR_UUID, new byte[] { (byte) 0x00 });
+
 	}
 
 	private void handleIRSensorData(byte[] value)
@@ -593,7 +655,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 			}
 		}
 		// notify
-		// this.notifyChangedTemperatureAt(temperature, sensorId);
+		this.notifyChangedTemperatureAt(temperature, sensorId);
 
 		// log
 		this.logger.log(LogService.LOG_INFO, "Device " + device.getDeviceId()
@@ -646,7 +708,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 				new TridimensionalGyroscopeState(gyroXValue, gyroYValue,
 						gyroZValue));
 		// notify
-		// this.notifyNew3DGyroscopeValue(gyroXDeg, gyroYDeg, gyroZDeg);
+		this.notifyNew3DGyroscopeValue(gyroXDeg, gyroYDeg, gyroZDeg);
 
 		// log
 		this.logger.log(LogService.LOG_INFO,
@@ -680,7 +742,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 						accZValue));
 
 		// notify
-		// this.notifyNew3DAccelerationValue(accXG, accYG, accZG);
+		this.notifyNew3DAccelerationValue(accXG, accYG, accZG);
 
 		// log
 		this.logger.log(LogService.LOG_INFO,
@@ -717,7 +779,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 						magZValue));
 
 		// notify
-		// this.notifyNew3DMagnetometerValue(magXuT, magYuT, magZuT);
+		this.notifyNew3DMagnetometerValue(magXuT, magYuT, magZuT);
 
 		// log
 		this.logger.log(LogService.LOG_INFO,
@@ -761,4 +823,5 @@ public class CC2650DriverInstance extends BLEDriverInstance
 		this.logger.log(LogService.LOG_INFO, "Device: " + device.getDeviceId()
 				+ " Luminosity: " + luminosity.toString());
 	}
+
 }
