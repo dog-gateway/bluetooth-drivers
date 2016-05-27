@@ -21,7 +21,7 @@ package org.doggateway.drivers.bluetooth.ble.network.interfaces;
  * An interface to be notified about the discovery of new devices at the network
  * level
  * 
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public interface BLEDiscoveryListener

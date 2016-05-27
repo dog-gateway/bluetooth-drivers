@@ -36,7 +36,7 @@ import it.polito.elite.dog.core.library.util.ElementDescription;
 import it.polito.elite.dog.core.library.util.LogHelper;
 
 /**
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public abstract class BLEDriverInstance implements StatefulDevice

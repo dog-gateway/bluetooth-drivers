@@ -162,8 +162,8 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 		this.discoveryTrials = BLENetworkDriverImpl.DISCOVERY_TRIALS;
 		this.discoveryIntervalMillis = BLENetworkDriverImpl.DISCOVERY_INTERVAL_MILLIS;
 		this.discoveryCyclingTimeMillis = BLENetworkDriverImpl.DISCOVERY_CYCLYING_TIME_MILLIS;
-		
-		//initialize the actual polling time
+
+		// initialize the actual polling time
 		this.actualPollingTimeMillis = BLENetworkDriverImpl.DISCOVERY_INTERVAL_MILLIS;
 
 		// build the atomic references
@@ -216,15 +216,13 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 		// stop the polling worker
 		this.pollingWorker.setRunnable(false);
 		this.pollingWorker.interrupt();
-		
 
 		// stop the discovery worker
 		this.discoveryWorker.setRunnable(false);
 		this.discoveryWorker.interrupt();
-		
-		//unregister network services
+
+		// unregister network services
 		this.unregisterNetworkService();
-		
 
 		// debug: signal activation...
 		this.logger.log(LogService.LOG_DEBUG, "Deactivated...");
@@ -280,7 +278,8 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 			{
 				try
 				{
-					this.deviceGetTrials = Integer.valueOf(deviceGetTrials.trim());
+					this.deviceGetTrials = Integer
+							.valueOf(deviceGetTrials.trim());
 				}
 				catch (NumberFormatException e)
 				{
@@ -298,7 +297,8 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 			{
 				try
 				{
-					this.deviceGetTimeout = Integer.valueOf(deviceGetTimeout.trim());
+					this.deviceGetTimeout = Integer
+							.valueOf(deviceGetTimeout.trim());
 				}
 				catch (NumberFormatException e)
 				{
@@ -316,7 +316,8 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 			{
 				try
 				{
-					this.discoveryTrials = Integer.valueOf(discoveryTrials.trim());
+					this.discoveryTrials = Integer
+							.valueOf(discoveryTrials.trim());
 				}
 				catch (NumberFormatException e)
 				{
@@ -373,7 +374,8 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 			{
 				try
 				{
-					int jitterPercentageInt = Integer.valueOf(jitterPercentage.trim());
+					int jitterPercentageInt = Integer
+							.valueOf(jitterPercentage.trim());
 					if ((jitterPercentageInt > 0)
 							&& (jitterPercentageInt <= 100))
 						this.allowedTimeJitter = jitterPercentageInt;
@@ -386,7 +388,7 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 									+ " should be integer");
 				}
 			}
-			
+
 			// update the service registration
 			this.registerNetworkService();
 		}
@@ -424,8 +426,10 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 
 			// add the registration to the managed device
 			device.addBLEDeviceRegistration(devReg);
-			
-			this.logger.log(LogService.LOG_INFO, "Added device registration, polling time: "+device.getPollingTimeMillis());
+
+			this.logger.log(LogService.LOG_INFO,
+					"Added device registration, polling time: "
+							+ device.getPollingTimeMillis());
 
 			// attach the low-level device
 			if (!this.attachLowLevelDevice(device))
@@ -627,6 +631,67 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 		return written;
 	}
 
+	@Override
+	public boolean setNotify(String deviceMacAddress, String serviceUUID,
+			String characteristicUUID, boolean value)
+	{
+
+		boolean written = false;
+
+		// get the managed device corresponding to the given mac address
+		ManagedBluetoothDevice device = this.managedDevices
+				.get(deviceMacAddress);
+
+		// check not null
+		if (device != null)
+		{
+			// get the low-level device
+			BluetoothDevice lowDevice = device.getLowDevice();
+
+			// check not null
+			if (lowDevice != null)
+			{
+				// check if connected
+				if (!lowDevice.getConnected())
+				{
+					// try connecting
+					if (lowDevice.connect())
+					{
+						// connected, write the value
+						written = this.startStopNotifyOnConnectedDevice(lowDevice,
+								serviceUUID, characteristicUUID, value);
+					}
+					else
+					{
+						this.logger.log(LogService.LOG_WARNING,
+								"Unable to connect to device "
+										+ lowDevice.getName()
+										+ " perhaps it is out-of-range or sleeping");
+					}
+				}
+				else
+				{
+					// connected, write the value
+					written = this.startStopNotifyOnConnectedDevice(lowDevice,
+							serviceUUID, characteristicUUID, value);
+				}
+
+			}
+			else
+			{
+				this.logger.log(LogService.LOG_WARNING,
+						"Unfortunately the device has not yet been discovered, please retry later...");
+			}
+		}
+		else
+		{
+			this.logger.log(LogService.LOG_ERROR,
+					"Attempt to write characteristic value to a device not managed by this network driver, perhaps you forgot to add a BLEDeviceRegistration?");
+		}
+
+		return written;
+	}
+
 	/**
 	 * Provides a list of the mac addresses of devices currently managed, the
 	 * list is a copy of the actual "live" structure hosted by this driver class
@@ -707,30 +772,34 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 			this.bluetooth.get().getManager().stopDiscovery();
 		}
 	}
-	
-	
 
-	/* (non-Javadoc)
-	 * @see org.doggateway.drivers.bluetooth.ble.network.interfaces.BLENetwork#startDiscovery()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.doggateway.drivers.bluetooth.ble.network.interfaces.BLENetwork#
+	 * startDiscovery()
 	 */
 	@Override
 	public void startDiscovery()
 	{
 		// if the discovery thread exists, start it
-		if((this.discoveryWorker!=null)&&(this.discoveryWorker.isAlive()))
+		if ((this.discoveryWorker != null) && (this.discoveryWorker.isAlive()))
 		{
-			//signal the worker to resume...
+			// signal the worker to resume...
 			this.discoveryWorker.interrupt();
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.doggateway.drivers.bluetooth.ble.network.interfaces.BLENetwork#stopDiscovery()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.doggateway.drivers.bluetooth.ble.network.interfaces.BLENetwork#
+	 * stopDiscovery()
 	 */
 	@Override
 	public void stopDiscovery()
 	{
-		// TODO Define Automatic vs Manual discovery!!! at now do nothing		
+		// TODO Define Automatic vs Manual discovery!!! at now do nothing
 	}
 
 	/**
@@ -959,6 +1028,57 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 		return written;
 	}
 
+	private boolean startStopNotifyOnConnectedDevice(BluetoothDevice lowDevice,
+			String serviceUUID, String characteristicUUID, boolean value)
+	{
+		boolean written = false;
+		// try getting the referred service
+		BluetoothGattService service = this.bluetooth.get().getService(
+				lowDevice, serviceUUID, this.deviceGetTimeout,
+				this.deviceGetTrials);
+
+		// check not null
+		if (service != null)
+		{
+			// try getting the characteristic
+			BluetoothGattCharacteristic characteristic = this.bluetooth.get()
+					.getCharacteristic(service, characteristicUUID);
+
+			// check not null
+			if (characteristic != null)
+			{
+				// read the value
+				if (value)
+				{
+					written = characteristic.startNotify();
+				}
+				else
+				{
+					written = characteristic.stopNotify();
+				}
+			}
+			else
+			{
+				// log the error
+				this.logger.log(LogService.LOG_WARNING,
+						"Unable to write the value for characteristic ("
+								+ characteristicUUID + ") of service ("
+								+ serviceUUID + ") of device "
+								+ lowDevice.getName());
+			}
+		}
+		else
+		{
+			// log the error
+			this.logger.log(LogService.LOG_WARNING,
+					"Unable to get service (" + serviceUUID + ") from device "
+							+ lowDevice.getName() + " within "
+							+ this.deviceGetTrials + " trial, each waiting for"
+							+ this.deviceGetTimeout);
+		}
+		return written;
+	}
+
 	private void updatePollingTimes()
 	{
 		// iterate over all device registrations for computing the minum
@@ -990,7 +1110,6 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 				? jitterAwarePollingTime
 				: BLENetworkDriverImpl.MINIMUM_THREAD_SLEEP_MILLIS;
 	}
-	
 
 	/**
 	 * Registers the services described by the {@link EnOceanNetwork} interface

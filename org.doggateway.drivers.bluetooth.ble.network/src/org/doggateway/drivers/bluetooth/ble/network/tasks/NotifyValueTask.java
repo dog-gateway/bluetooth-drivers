@@ -20,7 +20,7 @@ package org.doggateway.drivers.bluetooth.ble.network.tasks;
 import org.doggateway.drivers.bluetooth.ble.network.BLEDriverInstance;
 
 /**
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public class NotifyValueTask implements Runnable

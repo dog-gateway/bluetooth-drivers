@@ -21,7 +21,7 @@ import org.doggateway.drivers.bluetooth.ble.network.BLEDriverInstance;
 import org.doggateway.drivers.bluetooth.ble.network.info.BLEDeviceRegistration;
 
 /**
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public interface BLENetwork
@@ -106,5 +106,16 @@ public interface BLENetwork
 	 * @return true if removed, false otherwise
 	 */
 	public boolean removeDiscoveryListener(BLEDiscoveryListener listener);
+
+	/**
+	 * Starts/stops notification for a given device characteristic
+	 * @param deviceMacAddress
+	 * @param serviceUUID
+	 * @param characteristicUUID
+	 * @param value
+	 * @return
+	 */
+	boolean setNotify(String deviceMacAddress, String serviceUUID,
+			String characteristicUUID, boolean value);
 
 }

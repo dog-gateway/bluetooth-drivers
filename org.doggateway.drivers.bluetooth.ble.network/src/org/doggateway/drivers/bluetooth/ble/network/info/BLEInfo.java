@@ -20,7 +20,7 @@ package org.doggateway.drivers.bluetooth.ble.network.info;
 import it.polito.elite.dog.core.library.model.ConfigurationConstants;
 
 /**
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public class BLEInfo extends ConfigurationConstants

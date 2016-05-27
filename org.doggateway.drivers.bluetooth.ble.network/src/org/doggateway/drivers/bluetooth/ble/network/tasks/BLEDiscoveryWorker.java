@@ -31,7 +31,7 @@ import org.osgi.service.log.LogService;
 import tinyb.BluetoothDevice;
 
 /**
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public class BLEDiscoveryWorker extends Thread

@@ -23,7 +23,7 @@ import java.util.concurrent.Callable;
 import org.doggateway.drivers.bluetooth.ble.network.interfaces.BLEDiscoveryListener;
 
 /**
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public class DispatchDiscoveryStatusTask implements Callable<Void>

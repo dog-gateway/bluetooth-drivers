@@ -26,7 +26,7 @@ import tinyb.BluetoothDevice;
 
 /**
  * A task for dispatching discovery data to declared listeners
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public class DispatchDiscoveryTask implements Callable<Void>

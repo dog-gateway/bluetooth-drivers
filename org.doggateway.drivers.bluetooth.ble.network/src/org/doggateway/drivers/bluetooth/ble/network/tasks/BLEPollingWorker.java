@@ -24,7 +24,7 @@ import org.doggateway.drivers.bluetooth.ble.network.info.ManagedBluetoothService
 import org.osgi.service.log.LogService;
 
 /**
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public class BLEPollingWorker extends Thread
