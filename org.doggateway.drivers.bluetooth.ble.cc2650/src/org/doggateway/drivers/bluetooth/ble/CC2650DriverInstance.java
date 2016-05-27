@@ -1,3 +1,20 @@
+/*
+ * Dog - Bluetooth Low Energy Texas Instruments CC2650 Sensor Tag driver
+ * 
+ * Copyright (c) 2016 Dario Bonino 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
 package org.doggateway.drivers.bluetooth.ble;
 
 import javax.measure.DecimalMeasure;
@@ -34,11 +51,16 @@ import it.polito.elite.dog.core.library.model.statevalue.LevelStateValue;
 import it.polito.elite.dog.core.library.model.statevalue.MagnetometerStateValue;
 import it.polito.elite.dog.core.library.model.statevalue.MultipleTemperatureStateValue;
 import it.polito.elite.dog.core.library.model.statevalue.OffStateValue;
+import it.polito.elite.dog.core.library.model.statevalue.OnStateValue;
 import it.polito.elite.dog.core.library.model.statevalue.PressureStateValue;
 import it.polito.elite.dog.core.library.model.statevalue.StateValue;
 import it.polito.elite.dog.core.library.model.statevalue.TemperatureStateValue;
 import it.polito.elite.dog.core.library.util.LogHelper;
 
+/**
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
+ *
+ */
 public class CC2650DriverInstance extends BLEDriverInstance
 		implements CC2650SensorTag
 {
@@ -75,7 +97,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 	public static final String IO_SERVICE_UUID = "f000aa64-0451-4000-b000-000000000000";
 	public static final String IO_CHAR_UUID = "f000aa65-0451-4000-b000-000000000000";
 	public static final String IO_CONFIG_UUID = "f000aa66-0451-4000-b000-000000000000";
-	public static final byte[] IO_CONFIG = { (byte) 0x01};
+	public static final byte[] IO_CONFIG = { (byte) 0x01 };
 
 	// the movement polling rate
 	private int movementPollingTimeMillis;
@@ -87,10 +109,11 @@ public class CC2650DriverInstance extends BLEDriverInstance
 		super(network, device, gwMacAddress, pollingTimeMillis,
 				new LogHelper(context));
 
+		// store the polling time for movement sensors, if any specified
 		this.movementPollingTimeMillis = movementPollingTimeMillis;
 
-		// TODO check how support this as when this method is calles the
-		// movement polling time has not yet been stored.
+		// --- update characteristic polling time before registration on the
+		// network driver
 
 		// check if a dedicated movement time millis has been specified
 		if (this.movementPollingTimeMillis != this.pollingTimeMillis)
@@ -112,6 +135,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 			}
 		}
 
+		// register the device on the network driver
 		this.network.addDeviceRegistration(bleDevReg);
 
 		// initialize the device status
@@ -185,15 +209,23 @@ public class CC2650DriverInstance extends BLEDriverInstance
 				CC2650DriverInstance.IO_SERVICE_UUID,
 				CC2650DriverInstance.IO_CHAR_UUID, new byte[] { (byte) 0x07 });
 
+		this.updateOnOff("buzzer", true);
+		this.updateOnOff("green led", true);
+		this.updateOnOff("red led", true);
+
 	}
 
 	@Override
 	public void off()
 	{
-		// turn on the buzzer
+		// turn off the buzzer
 		this.network.writeValue(this.getDeviceMacAddress(),
 				CC2650DriverInstance.IO_SERVICE_UUID,
 				CC2650DriverInstance.IO_CHAR_UUID, new byte[] { (byte) 0x00 });
+
+		this.updateOnOff("buzzer", false);
+		this.updateOnOff("green led", false);
+		this.updateOnOff("red led", false);
 
 	}
 
@@ -272,30 +304,11 @@ public class CC2650DriverInstance extends BLEDriverInstance
 	{
 		// prepare the device state map
 		this.currentState = new DeviceStatus(device.getDeviceId());
-
-		// TODO check how support this as when this method is calles the
-		// movement polling time has not yet been stored.
-		/*
-		 * // check if a dedicated movement time millis has been specified if
-		 * (this.movementPollingTimeMillis != this.pollingTimeMillis) { //
-		 * set-up movement polling time in ble device registrations
-		 * ServiceMonitorSpec movementSpec = this.bleDevReg.getServiceSpec(
-		 * CC2650DriverInstance.MOVEMENT_SENSOR_SERVICE_UUID);
-		 * 
-		 * // check not null if (movementSpec != null) { // iterate over char
-		 * specs for (CharacteristicMonitorSpec charSpec : movementSpec
-		 * .getCharacteristicSpecs()) {
-		 * charSpec.setMaximumAcceptablePollingTimeMillis(
-		 * movementPollingTimeMillis); } } }
-		 */
 	}
 
 	@Override
 	protected void addToNetworkDriver(BLEDeviceRegistration bleDevReg)
 	{
-		// add the ble registration to the driver
-		// this.network.addDeviceRegistration(bleDevReg);
-
 		// try turning on the notification at ble level
 		// can be done on the sole basis of configuration information
 		// but since this is a device-specific driver, we can use explicit
@@ -392,9 +405,10 @@ public class CC2650DriverInstance extends BLEDriverInstance
 				new LightIntensityState(new LevelStateValue()));
 
 		// set the button state
-		DiscreteValue value[] = new DiscreteValue[2];
+		DiscreteValue value[] = new DiscreteValue[3];
+		String ids[] = new String[] { "buzzer", "green led", "red led" };
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 3; i++)
 		{
 			// handle multiple structurally equal states
 
@@ -402,7 +416,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 			OffStateValue offValue = new OffStateValue();
 
 			// set the button id parameter
-			offValue.setFeature("buttonID", i + 1);
+			offValue.setFeature("buttonID", ids[i]);
 
 			value[i] = offValue;
 		}
@@ -553,7 +567,7 @@ public class CC2650DriverInstance extends BLEDriverInstance
 		int magYRaw = (value[14] + (value[15] << 8));
 		int magZRaw = (value[16] + (value[17] << 8));
 
-		// convert data
+		// convert and notify
 		this.updateAndNotifyGyroscope(this.gyroConvert(gyroXRaw),
 				this.gyroConvert(gyroYRaw), this.gyroConvert(gyroZRaw));
 
@@ -585,12 +599,14 @@ public class CC2650DriverInstance extends BLEDriverInstance
 
 	private void handleOpticalData(byte[] value)
 	{
-
+		// interpret the value
 		int lightIntensityValueRaw = (0x0000ffff)
 				& (value[0] + (value[1] << 8));
 		int m = lightIntensityValueRaw & (0x00000fff);
 		int e = (lightIntensityValueRaw & (0x0000f000)) >> 12;
 		double lightIntensityLux = m * (0.01d * Math.pow(2.0d, (double) e));
+
+		// update the status and notify
 		this.updateAndNotifyLuminosity(lightIntensityLux);
 
 	}
@@ -600,6 +616,15 @@ public class CC2650DriverInstance extends BLEDriverInstance
 		return (value * 1.0f) / (65536 / 500);
 	}
 
+	/**
+	 * Computes acceleration values depending on the currently configured
+	 * acceleration scale.
+	 * 
+	 * TODO: let the acceleration state be a configurable parameter.
+	 * 
+	 * @param value
+	 * @return
+	 */
 	private float accConvert(int value)
 	{
 		float valueFloat = 0;
@@ -660,6 +685,38 @@ public class CC2650DriverInstance extends BLEDriverInstance
 		// log
 		this.logger.log(LogService.LOG_INFO, "Device " + device.getDeviceId()
 				+ "[" + sensorId + "] temperature " + temperature.toString());
+	}
+
+	private void updateOnOff(String sensorId, boolean value)
+	{
+		// update the current state
+		StateValue values[] = this.currentState
+				.getState(MultipleOnOffState.class.getSimpleName())
+				.getCurrentStateValue();
+
+		// search for the right value
+		boolean found = false;
+		for (int i = 0; (i < values.length) && (!found); i++)
+		{
+			if (values[i].getFeatures().get("buttonID").equals(sensorId))
+			{
+
+				// update the value only if different from the current one
+				if (value && values[i].getValue().equals("off"))
+					values[i] = new OnStateValue();
+
+				else if (!value && values[i].getValue().equals("on"))
+					values[i] = new OffStateValue();
+				
+				values[i].setFeature("buttonID", sensorId);
+				// found
+				found = true;
+			}
+		}
+
+		// log
+		this.logger.log(LogService.LOG_INFO, "Device " + device.getDeviceId()
+				+ "[" + sensorId + "] active:" + value);
 	}
 
 	private void updateAndNotifyHumidity(float humidityValue)
