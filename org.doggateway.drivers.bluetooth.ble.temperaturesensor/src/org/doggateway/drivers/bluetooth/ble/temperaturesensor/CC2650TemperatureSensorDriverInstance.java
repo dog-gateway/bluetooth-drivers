@@ -1,5 +1,19 @@
-/**
+/*
+ * Dog - Bluetooth Low Energy Texas Instruments CC2650 Sensor Tag - IR Sensor driver
  * 
+ * Copyright (c) 2016 Dario Bonino 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
  */
 package org.doggateway.drivers.bluetooth.ble.temperaturesensor;
 
@@ -16,18 +30,20 @@ import org.osgi.service.log.LogService;
 
 import it.polito.elite.dog.core.library.model.ControllableDevice;
 import it.polito.elite.dog.core.library.model.DeviceStatus;
+import it.polito.elite.dog.core.library.model.devicecategory.CC2650IRSensor;
 import it.polito.elite.dog.core.library.model.devicecategory.Controllable;
 import it.polito.elite.dog.core.library.model.devicecategory.SingleTemperatureSensor;
-import it.polito.elite.dog.core.library.model.state.TemperatureState;
+import it.polito.elite.dog.core.library.model.state.MultipleTemperatureState;
+import it.polito.elite.dog.core.library.model.statevalue.StateValue;
 import it.polito.elite.dog.core.library.model.statevalue.TemperatureStateValue;
 import it.polito.elite.dog.core.library.util.LogHelper;
 
 /**
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public class CC2650TemperatureSensorDriverInstance extends BLEDriverInstance
-		implements SingleTemperatureSensor
+		implements CC2650IRSensor
 {
 
 	public static final String SERVICE_UUID = "f000aa00-0451-4000-b000-000000000000";
@@ -60,15 +76,6 @@ public class CC2650TemperatureSensorDriverInstance extends BLEDriverInstance
 	}
 
 	@Override
-	public Measure<?, ?> getTemperature()
-	{
-		// provides back the current temperature
-		return (Measure<?, ?>) this.currentState
-				.getState(TemperatureState.class.getSimpleName())
-				.getCurrentStateValue()[0].getValue();
-	}
-
-	@Override
 	public void storeGroup(Integer groupID)
 	{
 		// Not yet supported
@@ -83,16 +90,39 @@ public class CC2650TemperatureSensorDriverInstance extends BLEDriverInstance
 	}
 
 	@Override
-	public void notifyNewTemperatureValue(Measure<?, ?> temperatureValue)
-	{
-		((SingleTemperatureSensor) this.device)
-				.notifyNewTemperatureValue(temperatureValue);
-	}
-
-	@Override
 	public void notifyJoinedGroup(Integer groupNumber)
 	{
 		((SingleTemperatureSensor) this.device).notifyJoinedGroup(groupNumber);
+
+	}
+
+	@Override
+	public Measure<?, ?> getTemperatureFrom(String sensorURI)
+	{
+		Measure<?, ?> temperature = null;
+		StateValue[] values = this.currentState
+				.getState(MultipleTemperatureState.class.getSimpleName())
+				.getCurrentStateValue();
+
+		//search for the temperature value of the sensor identified by the given id
+		boolean found = false;
+		for (int i = 0; (i < values.length) && (!found); i++)
+		{
+			if (values[i].getFeatures().get("sensorID").equals(sensorURI))
+			{
+				found = true;
+				temperature = (Measure<?, ?>) values[i].getValue();
+			}
+		}
+		return temperature;
+	}
+
+	@Override
+	public void notifyChangedTemperatureAt(Measure<?, ?> temperatureValue,
+			String sensorID)
+	{
+		((CC2650IRSensor) this.device)
+				.notifyChangedTemperatureAt(temperatureValue, sensorID);
 
 	}
 
@@ -137,9 +167,13 @@ public class CC2650TemperatureSensorDriverInstance extends BLEDriverInstance
 			// interpret the value
 			int ambientTempRaw = (0x0000ffff) & (value[2] + (value[3] << 8));
 			float ambientTempCelsius = this.convertCelsius(ambientTempRaw);
+			
+			int objectTempRaw = (0x0000ffff) & (value[0] + (value[1] << 8));
+			float objectTempCelsius = this.convertCelsius(objectTempRaw);
 
 			// update status and notify
-			this.updateAndNotify((double) ambientTempCelsius);
+			this.updateAndNotify((double) ambientTempCelsius, "ambient");
+			this.updateAndNotify((double) objectTempCelsius, "object");
 
 		}
 
@@ -153,14 +187,19 @@ public class CC2650TemperatureSensorDriverInstance extends BLEDriverInstance
 		uf.alias(SI.CELSIUS, "C");
 
 		// the initial temperature value
-		TemperatureStateValue tValue = new TemperatureStateValue();
-		tValue.setValue(DecimalMeasure.valueOf("0 " + SI.CELSIUS.toString()));
+		TemperatureStateValue tValue1 = new TemperatureStateValue();
+		tValue1.setValue(DecimalMeasure.valueOf("0 " + SI.CELSIUS.toString()));
+		tValue1.setFeature("sensorID", "ambient");
+		
+		TemperatureStateValue tValue2 = new TemperatureStateValue();
+		tValue2.setValue(DecimalMeasure.valueOf("0 " + SI.CELSIUS.toString()));
+		tValue2.setFeature("sensorID", "object");
 
 		// the initial state
-		TemperatureState tState = new TemperatureState(tValue);
+		MultipleTemperatureState tState = new MultipleTemperatureState(tValue1, tValue2);
 
 		// set the current state
-		this.currentState.setState(TemperatureState.class.getSimpleName(),
+		this.currentState.setState(MultipleTemperatureState.class.getSimpleName(),
 				tState);
 	}
 
@@ -190,25 +229,36 @@ public class CC2650TemperatureSensorDriverInstance extends BLEDriverInstance
 	 *            The unit of measure, "Celsius" in all currently implemented
 	 *            profiles
 	 */
-	private void updateAndNotify(Double value)
+	private void updateAndNotify(Double value, String sensorID)
 	{
 
 		// treat the temperature as a measure
 		DecimalMeasure<?> temperature = DecimalMeasure
 				.valueOf(String.format("%.2f", value) + " " + SI.CELSIUS);
 
-		// update the current state
-		this.currentState.getState(TemperatureState.class.getSimpleName())
-				.getCurrentStateValue()[0].setValue(temperature);
+		StateValue[] values = this.currentState
+				.getState(MultipleTemperatureState.class.getSimpleName())
+				.getCurrentStateValue();
 
+		//search for the temperature value of the sensor identified by the given id
+		boolean found = false;
+		for (int i = 0; (i < values.length) && (!found); i++)
+		{
+			if (values[i].getFeatures().get("sensorID").equals(sensorID))
+			{
+				values[i].setValue(temperature);
+				found = true;
+			}
+		}
 		// update the status (Monitor Admin)
 		this.updateStatus();
 
 		// notify the change
-		this.notifyNewTemperatureValue(temperature);
+		this.notifyChangedTemperatureAt(temperature, sensorID);
 
 		// log
 		this.logger.log(LogService.LOG_INFO, "Device " + device.getDeviceId()
 				+ " temperature " + temperature.toString());
 	}
+
 }
