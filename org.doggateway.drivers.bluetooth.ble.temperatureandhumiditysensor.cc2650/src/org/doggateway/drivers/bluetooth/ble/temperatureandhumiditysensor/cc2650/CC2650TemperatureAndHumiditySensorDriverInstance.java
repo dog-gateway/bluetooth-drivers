@@ -1,5 +1,19 @@
-/**
+/*
+ * Dog - Bluetooth Low Energy Texas Instruments CC2650 Sensor Tag - Humidity Sensor driver
  * 
+ * Copyright (c) 2016 Dario Bonino 
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
  */
 package org.doggateway.drivers.bluetooth.ble.temperatureandhumiditysensor.cc2650;
 
@@ -17,6 +31,7 @@ import org.osgi.service.log.LogService;
 
 import it.polito.elite.dog.core.library.model.ControllableDevice;
 import it.polito.elite.dog.core.library.model.DeviceStatus;
+import it.polito.elite.dog.core.library.model.devicecategory.CC2650HumiditySensor;
 import it.polito.elite.dog.core.library.model.devicecategory.Controllable;
 import it.polito.elite.dog.core.library.model.devicecategory.TemperatureAndHumiditySensor;
 import it.polito.elite.dog.core.library.model.state.HumidityMeasurementState;
@@ -26,11 +41,11 @@ import it.polito.elite.dog.core.library.model.statevalue.TemperatureStateValue;
 import it.polito.elite.dog.core.library.util.LogHelper;
 
 /**
- * @author bonino
+ * @author <a href="mailto:dario.bonino@gmail.com">Dario Bonino</a>
  *
  */
 public class CC2650TemperatureAndHumiditySensorDriverInstance
-		extends BLEDriverInstance implements TemperatureAndHumiditySensor
+		extends BLEDriverInstance implements CC2650HumiditySensor
 {
 	// the device peculiar data
 	public static final String TEMPERATURE_HUMIDITY_SERVICE_UUID = "f000aa20-0451-4000-b000-000000000000";
@@ -83,13 +98,14 @@ public class CC2650TemperatureAndHumiditySensorDriverInstance
 	@Override
 	public void notifyChangedRelativeHumidity(Measure<?, ?> relativeHumidity)
 	{
-		((TemperatureAndHumiditySensor)this.device).notifyChangedRelativeHumidity(relativeHumidity);
+		((TemperatureAndHumiditySensor) this.device)
+				.notifyChangedRelativeHumidity(relativeHumidity);
 	}
 
 	@Override
 	public void storeGroup(Integer groupID)
 	{
-		//not yet implemented
+		// not yet implemented
 	}
 
 	@Override
@@ -150,20 +166,20 @@ public class CC2650TemperatureAndHumiditySensorDriverInstance
 		if (characteristicUUID.equals(
 				CC2650TemperatureAndHumiditySensorDriverInstance.TEMPERATURE_HUMIDITY_CHARACTERISTIC_UUID))
 		{
-				// do not ask any more!?!?
+			// do not ask any more!?!?
 
-				// interpret the value
-				int temperatureValueRaw = (0x0000ffff)&(value[0] + (value[1] << 8));
-				int humidityValueRaw = (0x0000ffff)&(value[2] + (value[3] << 8));
+			// interpret the value
+			int temperatureValueRaw = (0x0000ffff)
+					& (value[0] + (value[1] << 8));
+			int humidityValueRaw = (0x0000ffff) & (value[2] + (value[3] << 8));
 
-				float temperatureCelsius = this
-						.convertCelsius(temperatureValueRaw);
-				float humidityPercent = this
-						.convertHumidityPercent(humidityValueRaw);
+			float temperatureCelsius = this.convertCelsius(temperatureValueRaw);
+			float humidityPercent = this
+					.convertHumidityPercent(humidityValueRaw);
 
-				// update status and notify
-				this.updateAndNotify((double) temperatureCelsius,
-						(double) humidityPercent);
+			// update status and notify
+			this.updateAndNotify((double) temperatureCelsius,
+					(double) humidityPercent);
 		}
 
 	}
@@ -208,7 +224,7 @@ public class CC2650TemperatureAndHumiditySensorDriverInstance
 
 	private float convertCelsius(int raw)
 	{
-		return (raw / 65536f)*165f - 40f;
+		return (raw / 65536f) * 165f - 40f;
 	}
 
 	private float convertHumidityPercent(int raw)
@@ -238,11 +254,12 @@ public class CC2650TemperatureAndHumiditySensorDriverInstance
 				.getCurrentStateValue()[0].setValue(temperature);
 
 		// treat the temperature as a measure
-		DecimalMeasure<?> humidity = DecimalMeasure.valueOf(
-				String.format("%.2f", humidityValue) + " %");
+		DecimalMeasure<?> humidity = DecimalMeasure
+				.valueOf(String.format("%.2f", humidityValue) + " %");
 
 		// update the current state
-		this.currentState.getState(HumidityMeasurementState.class.getSimpleName())
+		this.currentState
+				.getState(HumidityMeasurementState.class.getSimpleName())
 				.getCurrentStateValue()[0].setValue(humidity);
 
 		// update the status (Monitor Admin)
@@ -253,8 +270,10 @@ public class CC2650TemperatureAndHumiditySensorDriverInstance
 		this.notifyChangedRelativeHumidity(humidity);
 
 		// log
-		this.logger.log(LogService.LOG_INFO, "Device: " + device.getDeviceId()
-				+ " Temperature: " + temperature.toString() +" Humidity: "+humidity.toString());
+		this.logger.log(LogService.LOG_INFO,
+				"Device: " + device.getDeviceId() + " Temperature: "
+						+ temperature.toString() + " Humidity: "
+						+ humidity.toString());
 	}
 
 }
