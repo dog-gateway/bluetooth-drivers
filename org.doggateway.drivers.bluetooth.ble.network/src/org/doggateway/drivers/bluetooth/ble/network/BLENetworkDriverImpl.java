@@ -631,66 +631,7 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 		return written;
 	}
 
-	@Override
-	public boolean setNotify(String deviceMacAddress, String serviceUUID,
-			String characteristicUUID, boolean value)
-	{
-
-		boolean written = false;
-
-		// get the managed device corresponding to the given mac address
-		ManagedBluetoothDevice device = this.managedDevices
-				.get(deviceMacAddress);
-
-		// check not null
-		if (device != null)
-		{
-			// get the low-level device
-			BluetoothDevice lowDevice = device.getLowDevice();
-
-			// check not null
-			if (lowDevice != null)
-			{
-				// check if connected
-				if (!lowDevice.getConnected())
-				{
-					// try connecting
-					if (lowDevice.connect())
-					{
-						// connected, write the value
-						written = this.startStopNotifyOnConnectedDevice(lowDevice,
-								serviceUUID, characteristicUUID, value);
-					}
-					else
-					{
-						this.logger.log(LogService.LOG_WARNING,
-								"Unable to connect to device "
-										+ lowDevice.getName()
-										+ " perhaps it is out-of-range or sleeping");
-					}
-				}
-				else
-				{
-					// connected, write the value
-					written = this.startStopNotifyOnConnectedDevice(lowDevice,
-							serviceUUID, characteristicUUID, value);
-				}
-
-			}
-			else
-			{
-				this.logger.log(LogService.LOG_WARNING,
-						"Unfortunately the device has not yet been discovered, please retry later...");
-			}
-		}
-		else
-		{
-			this.logger.log(LogService.LOG_ERROR,
-					"Attempt to write characteristic value to a device not managed by this network driver, perhaps you forgot to add a BLEDeviceRegistration?");
-		}
-
-		return written;
-	}
+	
 
 	/**
 	 * Provides a list of the mac addresses of devices currently managed, the
@@ -1028,6 +969,7 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 		return written;
 	}
 
+	/*
 	private boolean startStopNotifyOnConnectedDevice(BluetoothDevice lowDevice,
 			String serviceUUID, String characteristicUUID, boolean value)
 	{
@@ -1078,6 +1020,7 @@ public class BLENetworkDriverImpl implements BLENetwork, ManagedService
 		}
 		return written;
 	}
+	*/
 
 	private void updatePollingTimes()
 	{

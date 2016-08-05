@@ -69,7 +69,7 @@ public class DispatchDiscoveryTask implements Callable<Void>
 			{
 				//dispatch the discovery information
 				listener.discoveredDevice(this.device.getName(),
-						this.device.getAddress(), this.device.getRssi(),
+						this.device.getAddress(), this.device.getRSSI(),
 						this.managed);
 			}
 		}

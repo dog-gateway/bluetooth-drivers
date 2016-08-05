@@ -107,15 +107,4 @@ public interface BLENetwork
 	 */
 	public boolean removeDiscoveryListener(BLEDiscoveryListener listener);
 
-	/**
-	 * Starts/stops notification for a given device characteristic
-	 * @param deviceMacAddress
-	 * @param serviceUUID
-	 * @param characteristicUUID
-	 * @param value
-	 * @return
-	 */
-	boolean setNotify(String deviceMacAddress, String serviceUUID,
-			String characteristicUUID, boolean value);
-
 }

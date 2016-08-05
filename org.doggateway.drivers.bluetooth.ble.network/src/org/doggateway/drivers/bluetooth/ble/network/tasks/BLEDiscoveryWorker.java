@@ -106,7 +106,7 @@ public class BLEDiscoveryWorker extends Thread
 					this.theDriver.getLogger().log(LogService.LOG_INFO,
 							"Found: " + lowDevice.getName() + "[MAC: "
 									+ lowDevice.getAddress() + "][RSSI: "
-									+ lowDevice.getRssi() + "]");
+									+ lowDevice.getRSSI() + "]");
 					
 					//try to detect managed devices waiting for discovery
 					for (ManagedBluetoothDevice deviceToDiscover : devicesWaitingForDiscovery)
