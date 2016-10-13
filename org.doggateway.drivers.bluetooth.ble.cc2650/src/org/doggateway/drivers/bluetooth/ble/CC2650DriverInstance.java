@@ -484,10 +484,10 @@ public class CC2650DriverInstance extends BLEDriverInstance
 	{
 		// for all sensors on the device, write values to enable notifications
 		// on the given sensor characteristic
-		this.network.writeValue(this.getDeviceMacAddress(),
+		/*this.network.writeValue(this.getDeviceMacAddress(),
 				CC2650DriverInstance.MOVEMENT_SENSOR_SERVICE_UUID,
 				CC2650DriverInstance.MOVEMENT_SENSOR_ENABLE_UUID,
-				CC2650DriverInstance.MOVEMENT_SENSOR_ENABLE);
+				CC2650DriverInstance.MOVEMENT_SENSOR_ENABLE);*/
 		this.network.writeValue(this.getDeviceMacAddress(),
 				CC2650DriverInstance.MOVEMENT_SENSOR_SERVICE_UUID,
 				CC2650DriverInstance.MOVEMENT_SENSOR_CONFIG_UUID,
@@ -508,10 +508,10 @@ public class CC2650DriverInstance extends BLEDriverInstance
 				CC2650DriverInstance.OPTICAL_SENSOR_SERVICE_UUID,
 				CC2650DriverInstance.OPTICAL_SENSOR_CONFIG_UUID,
 				CC2650DriverInstance.OPTICAL_SENSOR_CONFIG);
-		this.network.writeValue(this.getDeviceMacAddress(),
+		/*this.network.writeValue(this.getDeviceMacAddress(),
 				CC2650DriverInstance.IO_SERVICE_UUID,
 				CC2650DriverInstance.IO_CONFIG_UUID,
-				CC2650DriverInstance.IO_CONFIG);
+				CC2650DriverInstance.IO_CONFIG);*/
 		this.network.writeValue(this.getDeviceMacAddress(),
 				CC2650DriverInstance.IO_SERVICE_UUID,
 				CC2650DriverInstance.IO_CHAR_UUID, new byte[] { (byte) 0x00 });
