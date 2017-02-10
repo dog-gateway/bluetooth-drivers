@@ -16,3 +16,4 @@ Service-Component: OSGI-INF/ble-network.xml
 Export-Package: org.doggateway.drivers.bluetooth.ble.network,
  org.doggateway.drivers.bluetooth.ble.network.info,
  org.doggateway.drivers.bluetooth.ble.network.interfaces
+Bundle-ActivationPolicy: lazy
