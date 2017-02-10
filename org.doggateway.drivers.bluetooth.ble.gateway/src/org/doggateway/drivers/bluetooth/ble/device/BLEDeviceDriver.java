@@ -325,6 +325,10 @@ public abstract class BLEDeviceDriver implements Driver, ManagedService
 				this.managedInstances.put(device.getDeviceId(), driverInstance);
 			}
 		}
+		else
+		{
+			this.context.ungetService(reference);
+		}
 
 		return null;
 
