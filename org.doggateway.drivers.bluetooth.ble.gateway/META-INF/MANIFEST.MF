@@ -20,3 +20,4 @@ Import-Package: it.polito.elite.dog.core.library.model;version="1.1.0",
 Service-Component: OSGI-INF/ble-adapter.xml
 Export-Package: org.doggateway.drivers.bluetooth.ble.device,
  org.doggateway.drivers.bluetooth.ble.gateway.interfaces
+Bundle-ActivationPolicy: lazy
