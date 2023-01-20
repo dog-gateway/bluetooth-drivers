@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" activate="activate" deactivate="deactivate" name="org.doggateway.drivers.bluetooth.ble.healththermometer">
+   <implementation class="org.doggateway.drivers.bluetooth.ble.healththermometer.HealthThermometerDriver"/>
+   <property name="service.pid" type="String" value="org.doggateway.drivers.bluetooth.ble.healththermometer"/>
+   <reference bind="gatewayAdded" cardinality="1..1" interface="org.doggateway.drivers.bluetooth.ble.gateway.interfaces.BLEAdapterDriver" name="BLEAdapterDriver" policy="dynamic" unbind="gatewayRemoved"/>
+   <reference bind="networkAdded" cardinality="1..1" interface="org.doggateway.drivers.bluetooth.ble.network.interfaces.BLENetwork" name="BLENetwork" policy="dynamic" unbind="networkRemoved"/>
+   <service>
+      <provide interface="org.osgi.service.cm.ManagedService"/>
+   </service>
+</scr:component>

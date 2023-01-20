@@ -1,9 +1,10 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Automatic-Module-Name: org.doggateway.drivers.bluetooth.ble.cc2650
-Bundle-Name: org.doggateway.bluetooth.ble.cc2650
-Bundle-SymbolicName: org.doggateway.drivers.bluetooth.ble.cc2650
-Bundle-Version: 1.0.0
+Automatic-Module-Name: org.doggateway.drivers.bluetooth.ble.ismb.temperatureandhumiditysensor
+Bundle-Name: org.doggateway.drivers.bluetooth.ble.ismb.temperatureandhumiditysensor
+Bundle-SymbolicName: org.doggateway.drivers.bluetooth.ble.ismb.temperatureandhumiditysensor
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: The Dog Gateway
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: it.polito.elite.dog.core.library.model;version="1.1.0",
  it.polito.elite.dog.core.library.model.devicecategory;version="1.1.0",
@@ -20,5 +21,5 @@ Import-Package: it.polito.elite.dog.core.library.model;version="1.1.0",
  org.osgi.service.cm;version="1.5.0",
  org.osgi.service.device;version="1.1.1",
  org.osgi.service.log;version="1.3.0"
-Service-Component: OSGI-INF/cc2650-ambient-temperature.xml
+Service-Component: OSGI-INF/ismb-temperature-humidity.xml
 Bundle-ActivationPolicy: lazy
